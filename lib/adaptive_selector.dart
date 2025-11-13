@@ -816,6 +816,7 @@ class AdaptiveSelectorShow {
     Widget? headerWidget,
     Widget? footerWidget,
     bool useSafeArea = true,
+    bool autoCloseOnSelect = true,
     // Contextual push
     bool useContextualPush = false,
     Offset? triggerPosition,
@@ -845,6 +846,7 @@ class AdaptiveSelectorShow {
       footerWidget: footerWidget,
       customBuilder: customBuilder,
       useSafeArea: useSafeArea,
+      autoCloseOnSelect: autoCloseOnSelect,
       useContextualPush: useContextualPush,
       triggerPosition: triggerPosition,
       maxContextualPushOffset: maxContextualPushOffset,
@@ -872,6 +874,10 @@ class AdaptiveSelectorShow {
     Widget? headerWidget,
     Widget? footerWidget,
     bool useSafeArea = true,
+    // Bottom sheet maximum height in logical pixels. Defaults to 75% of screen height.
+    double? maxHeight,
+    // Whether select(value) should auto-close (applies to customBuilder path)
+    bool autoCloseOnSelect = true,
     // Fully custom content builder (bypasses list rendering when provided)
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
@@ -891,6 +897,8 @@ class AdaptiveSelectorShow {
       headerWidget: headerWidget,
       footerWidget: footerWidget,
       useSafeArea: useSafeArea,
+      maxHeight: maxHeight,
+      autoCloseOnSelect: autoCloseOnSelect,
       customBuilder: customBuilder,
     );
   }
@@ -917,6 +925,8 @@ class AdaptiveSelectorShow {
     // Fully custom content builder (bypasses list rendering when provided)
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
+    // Whether select(value) should auto-close (applies to customBuilder and default list)
+    bool autoCloseOnSelect = true,
 
     // Anchoring
     LayerLink? anchorLink,
@@ -945,6 +955,7 @@ class AdaptiveSelectorShow {
       headerWidget: headerWidget,
       footerWidget: footerWidget,
       customBuilder: customBuilder,
+      autoCloseOnSelect: autoCloseOnSelect,
       anchorLink: anchorLink,
       anchorRect: anchorRect,
       panelWidth: panelWidth,
@@ -973,9 +984,12 @@ class AdaptiveSelectorShow {
     Widget? headerWidget,
     Widget? footerWidget,
     bool useSafeArea = true,
+    bool autoCloseOnSelect = true,
     // Custom content
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
+    // BottomSheet-only options (ignored for dropdown)
+    double? bottomSheetMaxHeight,
     // Dropdown-only anchors (ignored for bottom sheet)
     LayerLink? anchorLink,
     Rect? anchorRect,
@@ -1000,6 +1014,8 @@ class AdaptiveSelectorShow {
         headerWidget: headerWidget,
         footerWidget: footerWidget,
         useSafeArea: useSafeArea,
+        maxHeight: bottomSheetMaxHeight,
+        autoCloseOnSelect: autoCloseOnSelect,
         customBuilder: customBuilder,
       );
     } else {
@@ -1018,6 +1034,7 @@ class AdaptiveSelectorShow {
         headerWidget: headerWidget,
         footerWidget: footerWidget,
         customBuilder: customBuilder,
+        autoCloseOnSelect: autoCloseOnSelect,
         anchorLink: anchorLink,
         anchorRect: anchorRect,
         panelWidth: panelWidth,
@@ -1047,9 +1064,12 @@ class AdaptiveSelectorShow {
     Widget? headerWidget,
     Widget? footerWidget,
     bool useSafeArea = true,
+    bool autoCloseOnSelect = true,
     // Custom content
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
+    // BottomSheet-only options (ignored when using SideSheet)
+    double? bottomSheetMaxHeight,
     // SideSheet specific when desktop
     bool isLeftSide = true,
     bool useContextualPush = false,
@@ -1077,6 +1097,8 @@ class AdaptiveSelectorShow {
         headerWidget: headerWidget,
         footerWidget: footerWidget,
         useSafeArea: useSafeArea,
+        maxHeight: bottomSheetMaxHeight,
+        autoCloseOnSelect: autoCloseOnSelect,
         customBuilder: customBuilder,
       );
     } else {
@@ -1096,8 +1118,9 @@ class AdaptiveSelectorShow {
         isLoading: isLoading,
         headerWidget: headerWidget,
         footerWidget: footerWidget,
-        customBuilder: customBuilder,
         useSafeArea: useSafeArea,
+        autoCloseOnSelect: autoCloseOnSelect,
+        customBuilder: customBuilder,
         useContextualPush: useContextualPush,
         triggerPosition: triggerPosition,
         maxContextualPushOffset: maxContextualPushOffset,

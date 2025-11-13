@@ -97,6 +97,7 @@ class SideSheet<T> extends StatefulWidget {
     Widget? footerWidget,
     SideSheetCustomBuilder<T>? customBuilder,
     bool useSafeArea = true,
+    bool autoCloseOnSelect = true,
     // Contextual push
     bool useContextualPush = false,
     Offset? triggerPosition,
@@ -185,6 +186,7 @@ class SideSheet<T> extends StatefulWidget {
           size: size,
           animation: animation,
           useSafeArea: useSafeArea,
+          autoCloseOnSelect: autoCloseOnSelect,
         );
       },
     );
@@ -444,6 +446,7 @@ class _SideSheetContent<T> extends StatefulWidget {
   final SideSheetSize size;
   final Animation<double> animation;
   final bool useSafeArea;
+  final bool autoCloseOnSelect;
 
   const _SideSheetContent({
     required this.options,
@@ -462,6 +465,7 @@ class _SideSheetContent<T> extends StatefulWidget {
     this.footerWidget,
     this.customBuilder,
     this.useSafeArea = true,
+    this.autoCloseOnSelect = true,
   });
 
   @override
@@ -576,7 +580,7 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
     if (widget.customBuilder != null) {
       final custom = widget.customBuilder!(context, (value) {
         widget.onChanged(value);
-        Navigator.of(context).pop();
+        if (widget.autoCloseOnSelect) Navigator.of(context).pop();
       }, () => Navigator.of(context).pop());
       bodyContent = custom;
     } else {
@@ -601,7 +605,9 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
                       return InkWell(
                         onTap: () {
                           widget.onChanged(item);
-                          Navigator.of(context).pop();
+                          if (widget.autoCloseOnSelect) {
+                            Navigator.of(context).pop();
+                          }
                         },
                         child: Container(
                           padding: const EdgeInsets.symmetric(

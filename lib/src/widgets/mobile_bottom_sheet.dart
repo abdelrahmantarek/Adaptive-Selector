@@ -38,8 +38,13 @@ class MobileBottomSheet<T> extends StatefulWidget {
 
   /// Programmatic API to open the bottom sheet overlay.
   /// If [customBuilder] is provided, list-mode parameters (options/onChanged/itemBuilder)
-  /// can be omitted and you can render fully custom content. Use the `select(value)`
-  /// to emit a selection and close the sheet, or `close()` to just close.
+  /// can be omitted and you can render fully custom content.
+  ///
+  /// The provided `select(value)` will:
+  /// - Call `onChanged(value)` if provided
+  /// - Auto-close the sheet when [autoCloseOnSelect] is true (default)
+  ///
+  /// The provided `close()` will always close only this bottom sheet instance.
   static Future<void> openModal<T>({
     required BuildContext context,
     AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
@@ -56,10 +61,17 @@ class MobileBottomSheet<T> extends StatefulWidget {
     Widget? headerWidget,
     Widget? footerWidget,
     bool useSafeArea = true,
+    // Bottom sheet maximum height in logical pixels. Defaults to 75% of screen height.
+    double? maxHeight,
+    // Whether select(value) should close the sheet automatically
+    bool autoCloseOnSelect = true,
     // Fully custom content builder
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
   }) {
+    // Capture the same Navigator used to open the sheet to guarantee correct close()
+    final navigator = Navigator.of(context);
+
     return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -68,14 +80,19 @@ class MobileBottomSheet<T> extends StatefulWidget {
         if (customBuilder != null) {
           void select(T v) {
             if (onChanged != null) onChanged(v);
-            Navigator.of(ctx).pop();
+            if (autoCloseOnSelect) navigator.pop();
           }
 
-          void close() => Navigator.of(ctx).pop();
+          void close() => navigator.pop();
           final content = customBuilder(ctx, select, close);
           final safe = useSafeArea ? SafeArea(child: content) : content;
+          final screenHeight = MediaQuery.of(ctx).size.height;
+          final sheetHeight = ((maxHeight ?? screenHeight * 0.75)).clamp(
+            0.0,
+            screenHeight,
+          );
           return Container(
-            height: MediaQuery.of(ctx).size.height * 0.75,
+            height: sheetHeight,
             decoration: BoxDecoration(
               color: style.backgroundColor ?? Colors.white,
               borderRadius: const BorderRadius.only(
@@ -104,6 +121,7 @@ class MobileBottomSheet<T> extends StatefulWidget {
           headerWidget: headerWidget,
           footerWidget: footerWidget,
           useSafeArea: useSafeArea,
+          maxHeight: maxHeight,
         );
       },
     );
@@ -212,6 +230,7 @@ class _BottomSheetContent<T> extends StatefulWidget {
   final Widget? headerWidget;
   final Widget? footerWidget;
   final bool useSafeArea;
+  final double? maxHeight;
 
   const _BottomSheetContent({
     required this.options,
@@ -226,6 +245,7 @@ class _BottomSheetContent<T> extends StatefulWidget {
     this.headerWidget,
     this.footerWidget,
     this.useSafeArea = true,
+    this.maxHeight,
   });
 
   @override
@@ -420,8 +440,13 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
         : columnContent;
 
     // Wrap in Container with background (extends to full screen edges)
+    final screenHeight = MediaQuery.of(context).size.height;
+    final sheetHeight = ((widget.maxHeight ?? screenHeight * 0.75)).clamp(
+      0.0,
+      screenHeight,
+    );
     return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
+      height: sheetHeight,
       decoration: BoxDecoration(
         color: widget.style.backgroundColor ?? Colors.white,
         borderRadius: const BorderRadius.only(

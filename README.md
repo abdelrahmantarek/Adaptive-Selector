@@ -46,6 +46,7 @@ import 'package:adaptive_selector/adaptive_selector.dart';
 - [18. Contextual Push Animation (Overlay)](#18-contextual-push-animation-overlay)
 - [19. Programmatic API: show.dropdown (customBuilder)](#19-programmatic-api-showdropdown-custombuilder)
 - [20. Programmatic API: show.dropdownOrSheet](#20-programmatic-api-showdropdownorsheet)
+- [21. Programmatic API: Closing behavior (autoCloseOnSelect)](#21-programmatic-api-closing-behavior-autocloseonselect)
 
 ---
 
@@ -522,6 +523,73 @@ ElevatedButton(
   },
   child: const Text('Open dropdownOrSheet (Custom)'),
 )
+
+```
+
+## 21. Programmatic API: Closing behavior (autoCloseOnSelect)
+
+- select(value) always calls onChanged(value) when provided
+- By default, select(value) auto-closes the opened overlay/sheet across all show.\* APIs when using customBuilder
+- To keep it open after selecting, pass autoCloseOnSelect: false
+- close() always closes exactly what was opened by the API (Overlay/ModalBottomSheet/SideSheet)
+- Note: In bottom sheet list-mode (non-customBuilder), tapping an item closes the sheet by design
+
+```dart
+// Small-screen friendly: dropdownOrSheet + customBuilder + keep-open
+final keySmall = GlobalKey();
+ElevatedButton(
+  key: keySmall,
+  onPressed: () async {
+    final box = keySmall.currentContext!.findRenderObject() as RenderBox;
+    final topLeft = box.localToGlobal(Offset.zero); final size = box.size;
+    final rect = Rect.fromLTWH(topLeft.dx, topLeft.dy, size.width, size.height);
+
+    await AdaptiveSelector.show.dropdownOrSheet<String>(
+      context: context,
+      breakpoint: 600, // <600 => BottomSheet, >=600 => Dropdown
+      autoCloseOnSelect: false, // keep open after select(...)
+      onChanged: (v) => setState(() {}),
+      customBuilder: (ctx, select, close) {
+        final opts = fruits.take(5).toList();
+        return Column(mainAxisSize: MainAxisSize.min, children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 8, 8),
+            child: Row(children: [
+              const Expanded(child: Text('Pick & stay open')),
+              IconButton(onPressed: close, icon: const Icon(Icons.close)),
+            ]),
+          ),
+          const Divider(height: 1),
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: opts.length,
+              separatorBuilder: (_, __) => const Divider(height: 1),
+              itemBuilder: (c, i) {
+                final it = opts[i];
+                return ListTile(
+                  dense: true,
+                  title: Text(it),
+                  onTap: () => select(it), // stays open
+                );
+              },
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(onPressed: close, child: const Text('Close')),
+          ),
+        ]);
+      },
+      // Anchor is used only in dropdown mode
+      anchorRect: rect,
+      panelWidth: 280,
+      anchorHeight: size.height,
+      verticalOffset: 6,
+    );
+  },
+  child: const Text('Open (closing behavior)'),
+)
 ```
 
 ---
@@ -531,6 +599,10 @@ Notes
 - customBuilder signature: (BuildContext, void Function(T) select, VoidCallback close)
 - All programmatic show.\* APIs are overlay-based
 - dropdownOrSheet breakpoint: uses dropdown when width >= breakpoint; otherwise bottom sheet
+- Closing behavior (customBuilder): select(value) auto-closes by default; pass autoCloseOnSelect: false to keep the panel open
+- close() always closes what was opened internally (Overlay/ModalBottomSheet/SideSheet); you do not need to call Navigator.pop
+- BottomSheet list-mode: tapping an item always closes the sheet (autoCloseOnSelect applies to customBuilder path)
+
 - Anchoring: dropdown/show APIs support both LayerLink (anchorLink) and Rect (anchorRect)
 - SafeArea can be enabled/disabled per mode; default is enabled for bottom sheets
 

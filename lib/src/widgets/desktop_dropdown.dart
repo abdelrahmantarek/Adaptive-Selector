@@ -397,6 +397,8 @@ class DesktopDropdownOverlay {
     // Fully custom content builder
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
+    // Whether select(value) should auto-close (applies to customBuilder and list)
+    bool autoCloseOnSelect = true,
     // Anchoring
     LayerLink? anchorLink,
     Rect? anchorRect,
@@ -430,6 +432,7 @@ class DesktopDropdownOverlay {
         headerWidget: headerWidget,
         footerWidget: footerWidget,
         customBuilder: customBuilder,
+        autoCloseOnSelect: autoCloseOnSelect,
         anchorLink: anchorLink,
         anchorRect: anchorRect,
         panelWidth: panelWidth,
@@ -459,6 +462,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
   final Widget? footerWidget;
   final Widget Function(BuildContext, void Function(T), VoidCallback)?
   customBuilder;
+  final bool autoCloseOnSelect;
   final LayerLink? anchorLink;
   final Rect? anchorRect;
   final double panelWidth;
@@ -480,6 +484,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
     this.headerWidget,
     this.footerWidget,
     this.customBuilder,
+    this.autoCloseOnSelect = true,
     this.anchorLink,
     this.anchorRect,
     this.panelWidth = 0,
@@ -673,7 +678,7 @@ class _ProgrammaticDropdownOverlayState<T>
           onTap: () {
             widget.onChanged?.call(item);
             _searchController.clear();
-            widget.onClose();
+            if (widget.autoCloseOnSelect) widget.onClose();
           },
           child: Container(
             height: widget.style.itemHeight ?? 48,
@@ -760,7 +765,7 @@ class _ProgrammaticDropdownOverlayState<T>
                     builder: (ctx) {
                       void select(T v) {
                         widget.onChanged?.call(v);
-                        widget.onClose();
+                        if (widget.autoCloseOnSelect) widget.onClose();
                       }
 
                       return widget.customBuilder!(ctx, select, widget.onClose);
