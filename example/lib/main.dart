@@ -1,5 +1,8 @@
+import 'package:adaptive_selector_example/push_behavior_for_side_sheets.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_selector/adaptive_selector.dart';
+
+import 'contextual_push_for_overlay_side_sheets.dart';
 
 void main() {
   runApp(const MyApp());
@@ -59,6 +62,18 @@ class _MyHomePageState extends State<MyHomePage> {
     '5:00 PM',
   ];
 
+  // Programmatic show.* examples
+  late LayerLink _dropdownAnchorLink;
+  final GlobalKey _dropdownRectKey = GlobalKey();
+  String? selectedDropdownViaLink;
+  String? selectedDropdownViaRect;
+
+  // Programmatic show.*: dropdownOrSheet examples (Rect anchoring)
+  final GlobalKey _dropdownOrSheetRectKeySimple = GlobalKey();
+  final GlobalKey _dropdownOrSheetRectKeyCustom = GlobalKey();
+  String? selectedDropdownOrSheetSimple;
+  String? selectedDropdownOrSheetCustom;
+
   final List<String> fruits = [
     'Apple',
     'Banana',
@@ -79,6 +94,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     // Initialize LayerLink in initState to prevent hot reload issues
     _calendarAnchorLink = LayerLink();
+    _dropdownAnchorLink = LayerLink();
   }
 
   final List<String> countries = [
@@ -683,6 +699,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 selectedFullSheet != null ||
                 selectedAdvanced != null ||
                 selectedWithSafeArea != null ||
+                selectedDropdownViaLink != null ||
+                selectedDropdownViaRect != null ||
+                selectedDropdownOrSheetSimple != null ||
+                selectedDropdownOrSheetCustom != null ||
                 selectedWithoutSafeArea != null)
               Card(
                 elevation: 2,
@@ -738,6 +758,26 @@ class _MyHomePageState extends State<MyHomePage> {
                         _buildResultRow(
                           'Without SafeArea',
                           selectedWithoutSafeArea!,
+                        ),
+                      if (selectedDropdownViaLink != null)
+                        _buildResultRow(
+                          'Programmatic Dropdown (Link)',
+                          selectedDropdownViaLink!,
+                        ),
+                      if (selectedDropdownViaRect != null)
+                        _buildResultRow(
+                          'Programmatic Dropdown (Rect)',
+                          selectedDropdownViaRect!,
+                        ),
+                      if (selectedDropdownOrSheetSimple != null)
+                        _buildResultRow(
+                          'dropdownOrSheet (Simple)',
+                          selectedDropdownOrSheetSimple!,
+                        ),
+                      if (selectedDropdownOrSheetCustom != null)
+                        _buildResultRow(
+                          'dropdownOrSheet (Custom)',
+                          selectedDropdownOrSheetCustom!,
                         ),
                       if (selectedTimeSlot != null)
                         _buildResultRow('Time Slot', selectedTimeSlot!),
@@ -1164,6 +1204,175 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle(
+                      '19. Programmatic API: show.dropdown (customBuilder)',
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Open dropdown overlay programmatically anchored by LayerLink or measured Rect.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        CompositedTransformTarget(
+                          link: _dropdownAnchorLink,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              await AdaptiveSelector.show.dropdown<String>(
+                                context: context,
+                                anchorLink: _dropdownAnchorLink,
+                                panelWidth: 260,
+                                anchorHeight: 40,
+                                style: const AdaptiveSelectorStyle(),
+                                onChanged: (v) =>
+                                    setState(() => selectedDropdownViaLink = v),
+                                customBuilder: (ctx, select, close) {
+                                  final opts = fruits.take(6).toList();
+                                  return Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(12),
+                                        child: Text(
+                                          'Custom Dropdown (Link)',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      const Divider(height: 1),
+                                      Flexible(
+                                        child: ListView.separated(
+                                          shrinkWrap: true,
+                                          itemCount: opts.length,
+                                          separatorBuilder: (_, __) =>
+                                              const Divider(height: 1),
+                                          itemBuilder: (c, i) {
+                                            final it = opts[i];
+                                            return ListTile(
+                                              dense: true,
+                                              title: Text(it),
+                                              onTap: () => select(it),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton(
+                                          onPressed: close,
+                                          child: const Text('Cancel'),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            child: const Text('Open (LayerLink)'),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          key: _dropdownRectKey,
+                          onPressed: () async {
+                            final box =
+                                _dropdownRectKey.currentContext!
+                                        .findRenderObject()
+                                    as RenderBox;
+                            final topLeft = box.localToGlobal(Offset.zero);
+                            final size = box.size;
+                            final rect = Rect.fromLTWH(
+                              topLeft.dx,
+                              topLeft.dy,
+                              size.width,
+                              size.height,
+                            );
+
+                            await AdaptiveSelector.show.dropdown<String>(
+                              context: context,
+                              anchorRect: rect,
+                              panelWidth: 260,
+                              anchorHeight: size.height,
+                              style: const AdaptiveSelectorStyle(),
+                              onChanged: (v) =>
+                                  setState(() => selectedDropdownViaRect = v),
+                              customBuilder: (ctx, select, close) {
+                                final opts = fruits.take(6).toList();
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Padding(
+                                      padding: EdgeInsets.all(12),
+                                      child: Text(
+                                        'Custom Dropdown (Rect)',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    const Divider(height: 1),
+                                    Flexible(
+                                      child: ListView.separated(
+                                        shrinkWrap: true,
+                                        itemCount: opts.length,
+                                        separatorBuilder: (_, __) =>
+                                            const Divider(height: 1),
+                                        itemBuilder: (c, i) {
+                                          final it = opts[i];
+                                          return ListTile(
+                                            dense: true,
+                                            title: Text(it),
+                                            onTap: () => select(it),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        onPressed: close,
+                                        child: const Text('Cancel'),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                          child: const Text('Open (Rect)'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (selectedDropdownViaLink != null)
+                      Text(
+                        'Selected via Link: $selectedDropdownViaLink',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.green,
+                        ),
+                      ),
+                    if (selectedDropdownViaRect != null)
+                      Text(
+                        'Selected via Rect: $selectedDropdownViaRect',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.green,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
 
             const Card(
@@ -1225,6 +1434,195 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle(
+                      '20. Programmatic API: show.dropdownOrSheet',
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Adapts between dropdown (>= breakpoint) and bottom sheet (< breakpoint). Resize the window to see it switch.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+
+                    const Text(
+                      'Simple usage with options + header/footer + search:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        ElevatedButton(
+                          key: _dropdownOrSheetRectKeySimple,
+                          onPressed: () async {
+                            final box =
+                                _dropdownOrSheetRectKeySimple.currentContext!
+                                        .findRenderObject()
+                                    as RenderBox;
+                            final topLeft = box.localToGlobal(Offset.zero);
+                            final size = box.size;
+                            final rect = Rect.fromLTWH(
+                              topLeft.dx,
+                              topLeft.dy,
+                              size.width,
+                              size.height,
+                            );
+
+                            await AdaptiveSelector.show.dropdownOrSheet<String>(
+                              context: context,
+                              breakpoint: 600,
+                              options: fruits.take(8).toList(),
+                              selectedValue: selectedDropdownOrSheetSimple,
+                              onChanged: (v) => setState(
+                                () => selectedDropdownOrSheetSimple = v,
+                              ),
+                              itemBuilder: (ctx, item) => Text(item),
+                              enableSearch: true,
+                              hint: 'Pick a fruit... ',
+                              headerWidget: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Select a fruit',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              footerWidget: const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Tap outside or press Esc to close',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ),
+                              // Anchors are used only in dropdown mode and ignored for bottom sheet
+                              anchorRect: rect,
+                              panelWidth: 260,
+                              anchorHeight: size.height,
+                              verticalOffset: 6,
+                            );
+                          },
+                          child: const Text('Open dropdownOrSheet (Simple)'),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            'Breakpoint = 600 px. Uses dropdown on wide screens and bottom sheet on narrow screens.',
+                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Advanced with customBuilder:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      key: _dropdownOrSheetRectKeyCustom,
+                      onPressed: () async {
+                        final box =
+                            _dropdownOrSheetRectKeyCustom.currentContext!
+                                    .findRenderObject()
+                                as RenderBox;
+                        final topLeft = box.localToGlobal(Offset.zero);
+                        final size = box.size;
+                        final rect = Rect.fromLTWH(
+                          topLeft.dx,
+                          topLeft.dy,
+                          size.width,
+                          size.height,
+                        );
+
+                        await AdaptiveSelector.show.dropdownOrSheet<String>(
+                          context: context,
+                          breakpoint: 600,
+                          // You can still pass onChanged to receive the selected value
+                          onChanged: (v) =>
+                              setState(() => selectedDropdownOrSheetCustom = v),
+                          customBuilder: (ctx, select, close) {
+                            final opts = countries.take(6).toList();
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    12,
+                                    12,
+                                    8,
+                                    8,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Expanded(
+                                        child: Text(
+                                          'Custom content',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        tooltip: 'Close',
+                                        onPressed: close,
+                                        icon: const Icon(Icons.close),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Divider(height: 1),
+                                Flexible(
+                                  child: ListView.separated(
+                                    shrinkWrap: true,
+                                    itemCount: opts.length,
+                                    separatorBuilder: (_, __) =>
+                                        const Divider(height: 1),
+                                    itemBuilder: (c, i) {
+                                      final e = opts[i];
+                                      return ListTile(
+                                        dense: true,
+                                        title: Text(e),
+                                        onTap: () {
+                                          select(e);
+                                          // close(); // Not required: the panel closes after select() by default
+                                        },
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                          // Anchors are used only in dropdown mode and ignored for bottom sheet
+                          anchorRect: rect,
+                          panelWidth: 320,
+                          anchorHeight: size.height,
+                          verticalOffset: 6,
+                        );
+                      },
+                      child: const Text('Open dropdownOrSheet (Custom)'),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Note: anchorRect is used only in dropdown mode and ignored in bottom sheet mode.',
+                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -1260,544 +1658,5 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
     );
-  }
-}
-
-/// Example page demonstrating push behavior for side sheets
-class PushBehaviorExample extends StatefulWidget {
-  const PushBehaviorExample({super.key});
-
-  @override
-  State<PushBehaviorExample> createState() => _PushBehaviorExampleState();
-}
-
-class _PushBehaviorExampleState extends State<PushBehaviorExample> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  String? selectedLeftItem;
-  String? selectedRightItem;
-
-  final List<String> items = [
-    'Apple',
-    'Banana',
-    'Cherry',
-    'Date',
-    'Elderberry',
-    'Fig',
-    'Grape',
-    'Honeydew',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      appBar: AppBar(
-        title: const Text('Push Behavior Example'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
-      // Left drawer content (always available for push behavior)
-      drawer: Drawer(child: _buildDrawerContent(isLeft: true)),
-      // Right drawer content (always available for push behavior)
-      endDrawer: Drawer(child: _buildDrawerContent(isLeft: false)),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.swipe, size: 64, color: Colors.deepPurple),
-              const SizedBox(height: 24),
-              const Text(
-                'Push Behavior Demo',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Click the buttons below to open side sheets that push the main content aside.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 32),
-
-              // Left side sheet button
-              SizedBox(
-                width: double.infinity,
-                child: AdaptiveSelector<String>.sideSheet(
-                  isLeft: true,
-                  options: items,
-                  selectedValue: selectedLeftItem,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedLeftItem = value;
-                    });
-                  },
-                  itemBuilder: (context, item) => Text(item),
-                  hint: 'Open Left Side Sheet (Push)',
-                  usePushBehavior: true,
-                  scaffoldKey: _scaffoldKey,
-                  sideSheetSize: SideSheetSize.medium,
-                  enableSearch: true,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Right side sheet button
-              SizedBox(
-                width: double.infinity,
-                child: AdaptiveSelector<String>.sideSheet(
-                  isLeft: false,
-                  options: items,
-                  selectedValue: selectedRightItem,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedRightItem = value;
-                    });
-                  },
-                  itemBuilder: (context, item) => Text(item),
-                  hint: 'Open Right Side Sheet (Push)',
-                  usePushBehavior: true,
-                  scaffoldKey: _scaffoldKey,
-                  sideSheetSize: SideSheetSize.medium,
-                  enableSearch: true,
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              if (selectedLeftItem != null || selectedRightItem != null) ...[
-                const Divider(),
-                const SizedBox(height: 16),
-                const Text(
-                  'Selected Values:',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                if (selectedLeftItem != null)
-                  Text(
-                    'Left: $selectedLeftItem',
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-                if (selectedRightItem != null)
-                  Text(
-                    'Right: $selectedRightItem',
-                    style: const TextStyle(color: Colors.blue),
-                  ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDrawerContent({required bool isLeft}) {
-    return Container(
-      color: Colors.white,
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.deepPurple,
-              child: Row(
-                children: [
-                  Icon(
-                    isLeft ? Icons.arrow_back : Icons.arrow_forward,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isLeft ? 'Left Side Sheet' : 'Right Side Sheet',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-
-                  final isSelected =
-                      item == (isLeft ? selectedLeftItem : selectedRightItem);
-
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        if (isLeft) {
-                          selectedLeftItem = item;
-                        } else {
-                          selectedRightItem = item;
-                        }
-                      });
-                      Navigator.of(context).pop();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      color: isSelected ? Colors.blue.shade50 : null,
-                      child: Text(
-                        item,
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: isSelected ? Colors.blue : Colors.black87,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Example page demonstrating contextual push for overlay side sheets
-class ContextualPushExample extends StatefulWidget {
-  const ContextualPushExample({super.key});
-
-  @override
-  State<ContextualPushExample> createState() => _ContextualPushExampleState();
-}
-
-class _ContextualPushExampleState extends State<ContextualPushExample> {
-  double _pushPx = 0;
-  final ValueNotifier<double> _pivotY = ValueNotifier(
-    0.5,
-  ); // 0.0 top -> 1.0 bottom (used for rotation alignment)
-
-  final ValueNotifier<double> _pivotX = ValueNotifier(
-    0.5,
-  ); // 0.0 left -> 1.0 right
-
-  // Key to measure the trigger button for precise edge-aligned push
-  final GlobalKey _leftTriggerKey = GlobalKey();
-  final GlobalKey _leftCustomKey = GlobalKey();
-
-  String? selectedLeftItem;
-  String? selectedRightItem;
-
-  final List<String> items = const [
-    'Apple',
-    'Banana',
-    'Cherry',
-    'Date',
-    'Elderberry',
-    'Fig',
-    'Grape',
-    'Honeydew',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    final screenW = MediaQuery.of(context).size.width;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Contextual Push Example'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-      ),
-      body: ValueListenableBuilder<double>(
-        valueListenable: _pivotY,
-        builder: (context, pivot, _) {
-          // Compute dxFraction directly from pixel offset so the library-provided
-          // visibility guarantee (keeping the trigger outside the sheet) is preserved.
-          final dxFraction = screenW > 0 ? (_pushPx / screenW) : 0.0;
-
-          // Flip pivot so the area near the trigger moves more (top trigger => top moves more)
-          final alignment = Alignment(
-            0,
-            (1 - pivot) * 2 - 1,
-          ); // -1 top, 0 center, 1 bottom
-          final angleTurns =
-              dxFraction *
-              0.02; // subtle rotation proportional to horizontal shift
-
-          return AnimatedRotation(
-            alignment: alignment,
-            turns: angleTurns,
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutCubic,
-            child: AnimatedSlide(
-              offset: Offset(dxFraction, 0),
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOutCubic,
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.layers,
-                        size: 64,
-                        color: Colors.deepPurple,
-                      ),
-                      const SizedBox(height: 24),
-                      const Text(
-                        'Contextual Push (Overlay)',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Open a side sheet as an overlay while the page contents subtly shift with a hinge around the trigger\'s vertical position.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Left side sheet (overlay) with contextual push
-                      SizedBox(
-                        width: double.infinity,
-                        child: AdaptiveSelector<String>.sideSheet(
-                          isLeft: true,
-                          options: items,
-                          selectedValue: selectedLeftItem,
-                          onChanged: (value) {
-                            setState(() => selectedLeftItem = value);
-                          },
-                          itemBuilder: (context, item) => Text(item),
-                          hint:
-                              'Open Left Side Sheet (Overlay + Contextual Push)',
-                          useContextualPush: true,
-                          maxContextualPushOffset: 0.0,
-                          onContextualPushOffsetChanged: (v) =>
-                              setState(() => _pushPx = v),
-                          onContextualPushPivotYChanged: (v) =>
-                              _pivotY.value = v,
-                          onContextualPushPivotXChanged: (v) =>
-                              _pivotX.value = v,
-                          enableSearch: true,
-                          footerWidget: Text("ssss"),
-                        ),
-                      ),
-
-                      ElevatedButton(
-                        key: _leftTriggerKey,
-                        onPressed: () async {
-                          final ctx = _leftTriggerKey.currentContext;
-                          final ro = ctx?.findRenderObject();
-                          if (ro is! RenderBox) return;
-                          final topLeft = ro.localToGlobal(Offset.zero);
-                          final size = ro.size;
-                          final triggerPos = Offset(
-                            topLeft.dx,
-                            topLeft.dy + size.height / 2,
-                          );
-
-                          await AdaptiveSelector.openSideSheetOverlay<String>(
-                            context: context,
-                            isLeftSide: true,
-                            size: SideSheetSize.medium,
-                            style: const AdaptiveSelectorStyle(),
-                            options: items,
-                            selectedValue: selectedLeftItem,
-
-                            enableSearch: true,
-                            // Edge-aligned contextual push driven by the trigger button
-                            useContextualPush: true,
-                            triggerPosition: triggerPos,
-                            maxContextualPushOffset: 0.0,
-                            onContextualPushOffsetChanged: (v) =>
-                                setState(() => _pushPx = v),
-                            onContextualPushPivotYChanged: (v) =>
-                                _pivotY.value = v,
-                            onContextualPushPivotXChanged: (v) =>
-                                _pivotX.value = v,
-                            footerWidget: Text("footerWidget"),
-                            headerWidget: Text("headerWidget"),
-                          );
-                        },
-                        child: Text(
-                          "Open Left Side Sheet (Overlay + Contextual Push)",
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      ElevatedButton(
-                        key: _leftCustomKey,
-                        onPressed: () async {
-                          final ctx = _leftCustomKey.currentContext;
-                          final ro = ctx?.findRenderObject();
-                          if (ro is! RenderBox) return;
-                          final topLeft = ro.localToGlobal(Offset.zero);
-                          final size = ro.size;
-                          final triggerPos = Offset(
-                            topLeft.dx,
-                            topLeft.dy + size.height / 2,
-                          );
-
-                          await AdaptiveSelector.openSideSheetOverlay<String>(
-                            context: context,
-                            isLeftSide: true,
-                            size: SideSheetSize.medium,
-                            style: const AdaptiveSelectorStyle(),
-                            // Fully custom content replaces default list UI
-                            customBuilder: (ctx, select, close) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Custom Header',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        IconButton(
-                                          onPressed: close,
-                                          icon: const Icon(Icons.close),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Divider(height: 1),
-                                  Expanded(
-                                    child: ListView(
-                                      children: [
-                                        ListTile(
-                                          title: const Text('Option A'),
-                                          onTap: () => select('Option A'),
-                                        ),
-                                        ListTile(
-                                          title: const Text('Option B'),
-                                          onTap: () => select('Option B'),
-                                        ),
-                                        Padding(
-                                          padding: const EdgeInsets.all(16),
-                                          child: ElevatedButton(
-                                            onPressed: close,
-                                            child: const Text('Close'),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const Divider(height: 1),
-                                  const Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Text('Custom Footer'),
-                                  ),
-                                ],
-                              );
-                            },
-                            // Edge-aligned contextual push driven by the custom trigger button
-                            useContextualPush: true,
-                            triggerPosition: triggerPos,
-                            maxContextualPushOffset: 0.0,
-                            onContextualPushOffsetChanged: (v) =>
-                                setState(() => _pushPx = v),
-                            onContextualPushPivotYChanged: (v) =>
-                                _pivotY.value = v,
-                            onContextualPushPivotXChanged: (v) =>
-                                _pivotX.value = v,
-                            // Ensure select() updates the demo state
-                            onChanged: (v) =>
-                                setState(() => selectedLeftItem = v),
-                          );
-                        },
-                        child: const Text(
-                          'Open Left Side Sheet (Custom Content + Contextual Push)',
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Right side sheet (overlay) with contextual push
-                      SizedBox(
-                        width: double.infinity,
-                        child: AdaptiveSelector<String>.sideSheet(
-                          isLeft: false,
-                          options: items,
-                          selectedValue: selectedRightItem,
-                          onChanged: (value) {
-                            setState(() => selectedRightItem = value);
-                          },
-                          itemBuilder: (context, item) => Text(item),
-                          hint:
-                              'Open Right Side Sheet (Overlay + Contextual Push)',
-                          useContextualPush: true,
-                          maxContextualPushOffset: 24.0,
-                          onContextualPushOffsetChanged: (v) =>
-                              setState(() => _pushPx = v),
-                          onContextualPushPivotYChanged: (v) =>
-                              _pivotY.value = v,
-                          onContextualPushPivotXChanged: (v) =>
-                              _pivotX.value = v,
-                          enableSearch: true,
-                        ),
-                      ),
-
-                      const SizedBox(height: 32),
-                      if (selectedLeftItem != null ||
-                          selectedRightItem != null) ...[
-                        const Divider(),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'Selected Values:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        if (selectedLeftItem != null)
-                          Text(
-                            'Left: $selectedLeftItem',
-                            style: const TextStyle(color: Colors.blue),
-                          ),
-                        if (selectedRightItem != null)
-                          Text(
-                            'Right: $selectedRightItem',
-                            style: const TextStyle(color: Colors.blue),
-                          ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _pivotY.dispose();
-    _pivotX.dispose();
-    super.dispose();
   }
 }

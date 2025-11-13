@@ -1789,4 +1789,375 @@ void main() {
       },
     );
   });
+
+  group('Programmatic Dropdown API (show.dropdown)', () {
+    testWidgets('opens overlay with LayerLink anchor and customBuilder', (
+      WidgetTester tester,
+    ) async {
+      final link = LayerLink();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CompositedTransformTarget(
+              link: link,
+              child: const SizedBox(width: 10, height: 10),
+            ),
+          ),
+        ),
+      );
+
+      AdaptiveSelector.show.dropdown<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorLink: link,
+        customBuilder: (ctx, select, close) {
+          return Material(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('CUSTOM_DROPDOWN'),
+                TextButton(onPressed: close, child: const Text('Close')),
+              ],
+            ),
+          );
+        },
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('CUSTOM_DROPDOWN'), findsOneWidget);
+
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.text('CUSTOM_DROPDOWN'), findsNothing);
+    });
+
+    testWidgets(
+      'customBuilder select() triggers onChanged and closes overlay',
+      (WidgetTester tester) async {
+        final link = LayerLink();
+        String? selected;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: CompositedTransformTarget(
+                link: link,
+                child: const SizedBox(width: 10, height: 10),
+              ),
+            ),
+          ),
+        );
+
+        AdaptiveSelector.show.dropdown<String>(
+          context: tester.element(find.byType(Scaffold)),
+          anchorLink: link,
+          onChanged: (v) => selected = v,
+          customBuilder: (ctx, select, close) {
+            return Material(
+              child: ListTile(title: const Text('A'), onTap: () => select('A')),
+            );
+          },
+        );
+
+        await tester.pumpAndSettle();
+        expect(find.text('A'), findsOneWidget);
+        await tester.tap(find.text('A'));
+        await tester.pumpAndSettle();
+        expect(selected, 'A');
+        expect(find.text('A'), findsNothing);
+      },
+    );
+
+    testWidgets('closes overlay via close() without selection', (
+      WidgetTester tester,
+    ) async {
+      final link = LayerLink();
+      String? selected;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: CompositedTransformTarget(
+              link: link,
+              child: const SizedBox(width: 10, height: 10),
+            ),
+          ),
+        ),
+      );
+
+      AdaptiveSelector.show.dropdown<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorLink: link,
+        onChanged: (v) => selected = v,
+        customBuilder: (ctx, select, close) {
+          return Material(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('TO_CLOSE'),
+                TextButton(onPressed: close, child: const Text('Close')),
+              ],
+            ),
+          );
+        },
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('TO_CLOSE'), findsOneWidget);
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(selected, isNull);
+      expect(find.text('TO_CLOSE'), findsNothing);
+    });
+
+    testWidgets('opens overlay with Rect anchor in list-mode', (
+      WidgetTester tester,
+    ) async {
+      final key = GlobalKey();
+      String? selected;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 100,
+                height: 40,
+                child: ElevatedButton(
+                  key: key,
+                  onPressed: () {},
+                  child: const Text('BTN'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final box = key.currentContext!.findRenderObject() as RenderBox;
+      final topLeft = box.localToGlobal(Offset.zero);
+      final size = box.size;
+      final rect = Rect.fromLTWH(
+        topLeft.dx,
+        topLeft.dy,
+        size.width,
+        size.height,
+      );
+
+      AdaptiveSelector.show.dropdown<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorRect: rect,
+        options: const ['One', 'Two', 'Three'],
+        selectedValue: null,
+        onChanged: (v) => selected = v,
+        itemBuilder: (c, it) => Text(it),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('One'), findsOneWidget);
+      await tester.tap(find.text('Two'));
+      await tester.pumpAndSettle();
+      expect(selected, 'Two');
+    });
+
+    testWidgets('positions above when Rect anchor is near bottom', (
+      WidgetTester tester,
+    ) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: SizedBox(
+                  width: 120,
+                  height: 40,
+                  child: ElevatedButton(
+                    key: key,
+                    onPressed: () {},
+                    child: const Text('OPEN'),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final box = key.currentContext!.findRenderObject() as RenderBox;
+      final topLeft = box.localToGlobal(Offset.zero);
+      final size = box.size;
+      final rect = Rect.fromLTWH(
+        topLeft.dx,
+        topLeft.dy,
+        size.width,
+        size.height,
+      );
+
+      await AdaptiveSelector.show.dropdown<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorRect: rect,
+        options: const ['One', 'Two', 'Three'],
+        selectedValue: null,
+        onChanged: (_) {},
+        itemBuilder: (c, it) => Text(it),
+      );
+
+      await tester.pumpAndSettle();
+
+      final overlayFinder = find.byWidgetPredicate(
+        (w) => w is Material && w.elevation == 4,
+      );
+      // Use the last Material with elevation 4 assuming it's our dropdown panel
+      final panelTop = tester.getTopLeft(overlayFinder.last).dy;
+      expect(panelTop < rect.top, isTrue);
+    });
+
+    testWidgets('positions above when LayerLink anchor is near bottom', (
+      WidgetTester tester,
+    ) async {
+      final link = LayerLink();
+      final targetKey = GlobalKey();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Align(
+              alignment: Alignment.bottomCenter,
+              child: CompositedTransformTarget(
+                key: targetKey,
+                link: link,
+                child: const SizedBox(width: 120, height: 40),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await AdaptiveSelector.show.dropdown<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorLink: link,
+        customBuilder: (ctx, select, close) => const Material(
+          child: SizedBox(
+            width: 200,
+            height: 150,
+            child: Center(child: Text('PANEL')),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+
+      final targetBox =
+          targetKey.currentContext!.findRenderObject() as RenderBox;
+      final targetTop = targetBox.localToGlobal(Offset.zero).dy;
+
+      final overlayFinder = find.byWidgetPredicate(
+        (w) => w is Material && w.elevation == 4,
+      );
+      final panelTop = tester.getTopLeft(overlayFinder.last).dy;
+
+      expect(panelTop < targetTop, isTrue);
+    });
+  });
+
+  group('Programmatic API (show.dropdownOrSheet)', () {
+    testWidgets('uses dropdown on large screens (list-mode)', (tester) async {
+      final key = GlobalKey();
+      String? selected;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Center(
+              child: SizedBox(
+                width: 100,
+                height: 40,
+                child: ElevatedButton(
+                  key: key,
+                  onPressed: () {},
+                  child: const Text('BTN'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Compute rect for anchoring (used for dropdown mode)
+      final box = key.currentContext!.findRenderObject() as RenderBox;
+      final topLeft = box.localToGlobal(Offset.zero);
+      final size = box.size;
+      final rect = Rect.fromLTWH(
+        topLeft.dx,
+        topLeft.dy,
+        size.width,
+        size.height,
+      );
+
+      await AdaptiveSelector.show.dropdownOrSheet<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorRect: rect,
+        options: const ['A', 'B', 'C'],
+        selectedValue: null,
+        onChanged: (v) => selected = v,
+        itemBuilder: (c, it) => Text(it),
+      );
+
+      await tester.pumpAndSettle();
+
+      // Should not be a bottom sheet on large screens
+      expect(find.byType(BottomSheet), findsNothing);
+
+      // Dropdown overlay panel should be present
+      final overlayFinder = find.byWidgetPredicate(
+        (w) => w is Material && w.elevation == 4,
+      );
+      expect(overlayFinder, findsWidgets);
+
+      await tester.tap(find.text('B'));
+      await tester.pumpAndSettle();
+      expect(selected, 'B');
+    });
+
+    testWidgets('uses bottom sheet on small screens (customBuilder)', (
+      tester,
+    ) async {
+      // Constrain width < 600
+      await tester.pumpWidget(
+        MediaQuery(
+          data: const MediaQueryData(size: Size(360, 640)),
+          child: MaterialApp(home: const Scaffold(body: SizedBox())),
+        ),
+      );
+
+      await AdaptiveSelector.show.dropdownOrSheet<String>(
+        context: tester.element(find.byType(Scaffold)),
+        customBuilder: (ctx, select, close) {
+          return Material(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('SHEET_CUSTOM'),
+                TextButton(onPressed: close, child: const Text('Close')),
+              ],
+            ),
+          );
+        },
+      );
+
+      await tester.pumpAndSettle();
+
+      // Should be rendered as a bottom sheet on small screens
+      expect(find.byType(BottomSheet), findsOneWidget);
+      expect(find.text('SHEET_CUSTOM'), findsOneWidget);
+
+      await tester.tap(find.text('Close'));
+      await tester.pumpAndSettle();
+      expect(find.text('SHEET_CUSTOM'), findsNothing);
+    });
+  });
 }

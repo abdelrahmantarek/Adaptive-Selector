@@ -36,6 +36,79 @@ class MobileBottomSheet<T> extends StatefulWidget {
     this.useSafeArea = true,
   });
 
+  /// Programmatic API to open the bottom sheet overlay.
+  /// If [customBuilder] is provided, list-mode parameters (options/onChanged/itemBuilder)
+  /// can be omitted and you can render fully custom content. Use the `select(value)`
+  /// to emit a selection and close the sheet, or `close()` to just close.
+  static Future<void> openModal<T>({
+    required BuildContext context,
+    AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
+    // List-mode (optional when using customBuilder)
+    List<T> options = const [],
+    T? selectedValue,
+    void Function(T value)? onChanged,
+    Widget Function(BuildContext, T)? itemBuilder,
+    bool enableSearch = false,
+    String? hint,
+    Future<List<T>> Function(String query)? onSearch,
+    Widget? loadingWidget,
+    bool isLoading = false,
+    Widget? headerWidget,
+    Widget? footerWidget,
+    bool useSafeArea = true,
+    // Fully custom content builder
+    Widget Function(BuildContext, void Function(T), VoidCallback)?
+    customBuilder,
+  }) {
+    return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        if (customBuilder != null) {
+          void select(T v) {
+            if (onChanged != null) onChanged(v);
+            Navigator.of(ctx).pop();
+          }
+
+          void close() => Navigator.of(ctx).pop();
+          final content = customBuilder(ctx, select, close);
+          final safe = useSafeArea ? SafeArea(child: content) : content;
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.75,
+            decoration: BoxDecoration(
+              color: style.backgroundColor ?? Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+            ),
+            child: safe,
+          );
+        }
+
+        assert(
+          itemBuilder != null && onChanged != null,
+          'itemBuilder and onChanged must be provided when customBuilder is null',
+        );
+        return _BottomSheetContent<T>(
+          options: options,
+          selectedValue: selectedValue,
+          onChanged: onChanged!,
+          itemBuilder: itemBuilder!,
+          enableSearch: enableSearch,
+          style: style,
+          onSearch: onSearch,
+          loadingWidget: loadingWidget,
+          isLoading: isLoading,
+          headerWidget: headerWidget,
+          footerWidget: footerWidget,
+          useSafeArea: useSafeArea,
+        );
+      },
+    );
+  }
+
   @override
   State<MobileBottomSheet<T>> createState() => _MobileBottomSheetState<T>();
 }

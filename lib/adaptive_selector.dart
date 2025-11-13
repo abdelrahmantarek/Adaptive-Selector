@@ -403,6 +403,42 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.footerWidget,
   });
 
+  /// Explicit adaptive constructor for discoverability.
+  ///
+  /// Equivalent to the default constructor with mode: AdaptiveSelectorMode.automatic.
+  const AdaptiveSelector.adaptive({
+    super.key,
+    required this.options,
+    required this.selectedValue,
+    required this.onChanged,
+    required this.itemBuilder,
+    this.enableSearch = false,
+    this.style,
+    this.hint,
+    this.breakpoint = 600,
+    this.onSearch,
+    this.loadingWidget,
+    this.isLoading = false,
+    this.dropdownHeaderWidget,
+    this.dropdownFooterWidget,
+    this.sideSheetSize = SideSheetSize.medium,
+    this.useSafeArea = true,
+    this.usePushBehavior = false,
+    this.scaffoldKey,
+    this.useContextualPush = false,
+    this.triggerPosition,
+    this.maxContextualPushOffset = 24.0,
+    this.onContextualPushOffsetChanged,
+    this.onContextualPushPivotYChanged,
+    this.onContextualPushPivotXChanged,
+    this.anchorLink,
+    this.anchorPosition = AnchorPosition.auto,
+    this.anchorOffset = const Offset(8, 0),
+    this.anchorPanelWidth = 300,
+    this.headerWidget,
+    this.footerWidget,
+  }) : mode = AdaptiveSelectorMode.automatic;
+
   /// Creates a side sheet selector.
   ///
   /// The side sheet slides in from the left or right edge of the screen.
@@ -514,6 +550,11 @@ class AdaptiveSelector<T> extends StatefulWidget {
   ///   selectedValue: selectedOption,
   ///   onChanged: (value) => setState(() => selectedOption = value),
   ///   itemBuilder: (context, item) => Text(item),
+
+  /// Programmatic API entry point (nested style):
+  /// Example: await AdaptiveSelector.show.sideSheet(...)
+  static final show = AdaptiveSelectorShow._();
+
   ///   dropdownHeaderWidget: Text('Select an option'),
   /// )
   /// ```
@@ -555,6 +596,9 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// Either provide list-mode params (options/onChanged/itemBuilder), or supply a
   /// fully custom builder via [customBuilder]. When [customBuilder] is provided,
   /// list params can be omitted.
+  @Deprecated(
+    'Use AdaptiveSelector.show.sideSheet() instead. This method will be removed in a future major release.',
+  )
   static Future<void> openSideSheetOverlay<T>({
     required BuildContext context,
     required bool isLeftSide,
@@ -584,7 +628,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
   }) {
-    return SideSheet.openOverlay<T>(
+    return AdaptiveSelector.show.sideSheet<T>(
       context: context,
       isLeftSide: isLeftSide,
       size: size,
@@ -748,6 +792,323 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
   }
 }
 
+/// Nested programmatic API namespace: AdaptiveSelector.show
+class AdaptiveSelectorShow {
+  const AdaptiveSelectorShow._();
+
+  /// Programmatically open a side sheet overlay (nested style).
+  /// Usage: await AdaptiveSelector.show.sideSheet(...)
+  Future<void> sideSheet<T>({
+    required BuildContext context,
+    required bool isLeftSide,
+    SideSheetSize size = SideSheetSize.medium,
+    AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
+    // List-mode (optional when using customBuilder)
+    List<T> options = const [],
+    T? selectedValue,
+    void Function(T value)? onChanged,
+    Widget Function(BuildContext, T)? itemBuilder,
+    bool enableSearch = false,
+    String? hint,
+    Future<List<T>> Function(String query)? onSearch,
+    Widget? loadingWidget,
+    bool isLoading = false,
+    Widget? headerWidget,
+    Widget? footerWidget,
+    bool useSafeArea = true,
+    // Contextual push
+    bool useContextualPush = false,
+    Offset? triggerPosition,
+    double maxContextualPushOffset = 24.0,
+    ValueChanged<double>? onContextualPushOffsetChanged,
+    ValueChanged<double>? onContextualPushPivotYChanged,
+    ValueChanged<double>? onContextualPushPivotXChanged,
+    // Fully custom content builder (bypasses list rendering when provided)
+    Widget Function(BuildContext, void Function(T), VoidCallback)?
+    customBuilder,
+  }) {
+    return SideSheet.openOverlay<T>(
+      context: context,
+      isLeftSide: isLeftSide,
+      size: size,
+      style: style,
+      options: options,
+      selectedValue: selectedValue,
+      onChanged: onChanged,
+      itemBuilder: itemBuilder,
+      enableSearch: enableSearch,
+      hint: hint,
+      onSearch: onSearch,
+      loadingWidget: loadingWidget,
+      isLoading: isLoading,
+      headerWidget: headerWidget,
+      footerWidget: footerWidget,
+      customBuilder: customBuilder,
+      useSafeArea: useSafeArea,
+      useContextualPush: useContextualPush,
+      triggerPosition: triggerPosition,
+      maxContextualPushOffset: maxContextualPushOffset,
+      onContextualPushOffsetChanged: onContextualPushOffsetChanged,
+      onContextualPushPivotYChanged: onContextualPushPivotYChanged,
+      onContextualPushPivotXChanged: onContextualPushPivotXChanged,
+    );
+  }
+
+  /// Programmatically open a bottom sheet (mobile-style) overlay.
+  /// Usage: await AdaptiveSelector.show.bottomSheet(...)
+  Future<void> bottomSheet<T>({
+    required BuildContext context,
+    AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
+    // List-mode (optional when using customBuilder)
+    List<T> options = const [],
+    T? selectedValue,
+    void Function(T value)? onChanged,
+    Widget Function(BuildContext, T)? itemBuilder,
+    bool enableSearch = false,
+    String? hint,
+    Future<List<T>> Function(String query)? onSearch,
+    Widget? loadingWidget,
+    bool isLoading = false,
+    Widget? headerWidget,
+    Widget? footerWidget,
+    bool useSafeArea = true,
+    // Fully custom content builder (bypasses list rendering when provided)
+    Widget Function(BuildContext, void Function(T), VoidCallback)?
+    customBuilder,
+  }) {
+    return MobileBottomSheet.openModal<T>(
+      context: context,
+      style: style,
+      options: options,
+      selectedValue: selectedValue,
+      onChanged: onChanged,
+      itemBuilder: itemBuilder,
+      enableSearch: enableSearch,
+      hint: hint,
+      onSearch: onSearch,
+      loadingWidget: loadingWidget,
+      isLoading: isLoading,
+      headerWidget: headerWidget,
+      footerWidget: footerWidget,
+      useSafeArea: useSafeArea,
+      customBuilder: customBuilder,
+    );
+  }
+
+  /// Programmatically open a desktop-style dropdown overlay.
+  /// Use either [anchorLink] (preferred for scroll/resize robustness) or
+  /// [anchorRect] to position the dropdown. If neither provided, it will default
+  /// to top-left at (0,0) which is rarely desired.
+  Future<void> dropdown<T>({
+    required BuildContext context,
+    AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
+    // List-mode
+    List<T> options = const [],
+    T? selectedValue,
+    void Function(T value)? onChanged,
+    Widget Function(BuildContext, T)? itemBuilder,
+    bool enableSearch = false,
+    String? hint,
+    Future<List<T>> Function(String query)? onSearch,
+    Widget? loadingWidget,
+    bool isLoading = false,
+    Widget? headerWidget,
+    Widget? footerWidget,
+    // Fully custom content builder (bypasses list rendering when provided)
+    Widget Function(BuildContext, void Function(T), VoidCallback)?
+    customBuilder,
+
+    // Anchoring
+    LayerLink? anchorLink,
+    Rect? anchorRect,
+    double panelWidth =
+        0, // 0 => derive from anchorRect.width or fallback to 300
+    double anchorHeight = 40,
+    double verticalOffset = 5,
+  }) {
+    assert(
+      customBuilder != null || (onChanged != null && itemBuilder != null),
+      'Provide either customBuilder or both onChanged and itemBuilder',
+    );
+    return DesktopDropdownOverlay.openOverlay<T>(
+      context: context,
+      style: style,
+      options: options,
+      selectedValue: selectedValue,
+      onChanged: onChanged,
+      itemBuilder: itemBuilder,
+      enableSearch: enableSearch,
+      hint: hint,
+      onSearch: onSearch,
+      loadingWidget: loadingWidget,
+      isLoading: isLoading,
+      headerWidget: headerWidget,
+      footerWidget: footerWidget,
+      customBuilder: customBuilder,
+      anchorLink: anchorLink,
+      anchorRect: anchorRect,
+      panelWidth: panelWidth,
+      anchorHeight: anchorHeight,
+      verticalOffset: verticalOffset,
+    );
+  }
+
+  /// Programmatic API: chooses dropdown for large screens (>= [breakpoint])
+  /// and bottom sheet for small screens. In dropdown mode, [anchorLink]/[anchorRect]
+  /// are used for positioning; they are ignored for bottom sheet.
+  Future<void> dropdownOrSheet<T>({
+    required BuildContext context,
+    double breakpoint = 600,
+    // Common parameters
+    AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
+    List<T> options = const [],
+    T? selectedValue,
+    void Function(T value)? onChanged,
+    Widget Function(BuildContext, T)? itemBuilder,
+    bool enableSearch = false,
+    String? hint,
+    Future<List<T>> Function(String query)? onSearch,
+    Widget? loadingWidget,
+    bool isLoading = false,
+    Widget? headerWidget,
+    Widget? footerWidget,
+    bool useSafeArea = true,
+    // Custom content
+    Widget Function(BuildContext, void Function(T), VoidCallback)?
+    customBuilder,
+    // Dropdown-only anchors (ignored for bottom sheet)
+    LayerLink? anchorLink,
+    Rect? anchorRect,
+    double panelWidth = 0,
+    double anchorHeight = 40,
+    double verticalOffset = 5,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < breakpoint) {
+      return bottomSheet<T>(
+        context: context,
+        style: style,
+        options: options,
+        selectedValue: selectedValue,
+        onChanged: onChanged,
+        itemBuilder: itemBuilder,
+        enableSearch: enableSearch,
+        hint: hint,
+        onSearch: onSearch,
+        loadingWidget: loadingWidget,
+        isLoading: isLoading,
+        headerWidget: headerWidget,
+        footerWidget: footerWidget,
+        useSafeArea: useSafeArea,
+        customBuilder: customBuilder,
+      );
+    } else {
+      return dropdown<T>(
+        context: context,
+        style: style,
+        options: options,
+        selectedValue: selectedValue,
+        onChanged: onChanged,
+        itemBuilder: itemBuilder,
+        enableSearch: enableSearch,
+        hint: hint,
+        onSearch: onSearch,
+        loadingWidget: loadingWidget,
+        isLoading: isLoading,
+        headerWidget: headerWidget,
+        footerWidget: footerWidget,
+        customBuilder: customBuilder,
+        anchorLink: anchorLink,
+        anchorRect: anchorRect,
+        panelWidth: panelWidth,
+        anchorHeight: anchorHeight,
+        verticalOffset: verticalOffset,
+      );
+    }
+  }
+
+  /// Programmatic automatic mode: chooses BottomSheet for small screens and
+  /// SideSheet for large screens based on [breakpoint]. For desktop, the side
+  /// sheet opens on the left by default unless [isLeftSide] is set to false.
+  Future<void> adaptive<T>({
+    required BuildContext context,
+    double breakpoint = 600,
+    // Common parameters
+    AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
+    List<T> options = const [],
+    T? selectedValue,
+    void Function(T value)? onChanged,
+    Widget Function(BuildContext, T)? itemBuilder,
+    bool enableSearch = false,
+    String? hint,
+    Future<List<T>> Function(String query)? onSearch,
+    Widget? loadingWidget,
+    bool isLoading = false,
+    Widget? headerWidget,
+    Widget? footerWidget,
+    bool useSafeArea = true,
+    // Custom content
+    Widget Function(BuildContext, void Function(T), VoidCallback)?
+    customBuilder,
+    // SideSheet specific when desktop
+    bool isLeftSide = true,
+    bool useContextualPush = false,
+    Offset? triggerPosition,
+    double maxContextualPushOffset = 24.0,
+    ValueChanged<double>? onContextualPushOffsetChanged,
+    ValueChanged<double>? onContextualPushPivotYChanged,
+    ValueChanged<double>? onContextualPushPivotXChanged,
+    SideSheetSize sideSheetSize = SideSheetSize.medium,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+    if (width < breakpoint) {
+      return bottomSheet<T>(
+        context: context,
+        style: style,
+        options: options,
+        selectedValue: selectedValue,
+        onChanged: onChanged,
+        itemBuilder: itemBuilder,
+        enableSearch: enableSearch,
+        hint: hint,
+        onSearch: onSearch,
+        loadingWidget: loadingWidget,
+        isLoading: isLoading,
+        headerWidget: headerWidget,
+        footerWidget: footerWidget,
+        useSafeArea: useSafeArea,
+        customBuilder: customBuilder,
+      );
+    } else {
+      return sideSheet<T>(
+        context: context,
+        isLeftSide: isLeftSide,
+        size: sideSheetSize,
+        style: style,
+        options: options,
+        selectedValue: selectedValue,
+        onChanged: onChanged,
+        itemBuilder: itemBuilder,
+        enableSearch: enableSearch,
+        hint: hint,
+        onSearch: onSearch,
+        loadingWidget: loadingWidget,
+        isLoading: isLoading,
+        headerWidget: headerWidget,
+        footerWidget: footerWidget,
+        customBuilder: customBuilder,
+        useSafeArea: useSafeArea,
+        useContextualPush: useContextualPush,
+        triggerPosition: triggerPosition,
+        maxContextualPushOffset: maxContextualPushOffset,
+        onContextualPushOffsetChanged: onContextualPushOffsetChanged,
+        onContextualPushPivotYChanged: onContextualPushPivotYChanged,
+        onContextualPushPivotXChanged: onContextualPushPivotXChanged,
+      );
+    }
+  }
+}
+
 /// Programmatically open a side sheet overlay with optional contextual push.
 ///
 /// This helper is provided for examples and advanced use-cases where the trigger
@@ -756,6 +1117,9 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
 /// For left sheets, pass `triggerPosition.dx` as the LEFT edge of the trigger;
 /// for right sheets, pass it as the RIGHT edge of the trigger. `triggerPosition.dy`
 /// should be the vertical center of the trigger to drive pivotY nicely.
+@Deprecated(
+  'Use AdaptiveSelector.show.sideSheet() instead. This function will be removed in a future major release.',
+)
 Future<void> openSideSheetOverlay<T>({
   required BuildContext context,
   required bool isLeftSide,
@@ -781,7 +1145,7 @@ Future<void> openSideSheetOverlay<T>({
   ValueChanged<double>? onContextualPushPivotYChanged,
   ValueChanged<double>? onContextualPushPivotXChanged,
 }) {
-  return SideSheet.openOverlay<T>(
+  return AdaptiveSelector.show.sideSheet<T>(
     context: context,
     isLeftSide: isLeftSide,
     size: size,
