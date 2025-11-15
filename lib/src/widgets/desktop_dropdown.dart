@@ -292,7 +292,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         });
       },
       child: Container(
-        height: widget.style.itemHeight ?? 48,
+        constraints: BoxConstraints(minHeight: widget.style.itemHeight ?? 48),
         padding:
             widget.style.padding ??
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -681,7 +681,12 @@ class _ProgrammaticDropdownOverlayState<T>
             if (widget.autoCloseOnSelect) widget.onClose();
           },
           child: Container(
-            height: widget.style.itemHeight ?? 48,
+            constraints: widget.itemBuilder != null
+                ? null // Allow custom itemBuilder to define its own height
+                : BoxConstraints(minHeight: widget.style.itemHeight ?? 48),
+            height: widget.itemBuilder != null
+                ? null // Flexible height for custom items
+                : (widget.style.itemHeight ?? 48),
             padding:
                 widget.style.padding ??
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

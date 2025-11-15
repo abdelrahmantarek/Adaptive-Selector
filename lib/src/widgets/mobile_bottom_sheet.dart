@@ -377,7 +377,7 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
         Navigator.pop(context);
       },
       child: Container(
-        height: widget.style.itemHeight ?? 56,
+        constraints: BoxConstraints(minHeight: widget.style.itemHeight ?? 56),
         padding:
             widget.style.padding ??
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
