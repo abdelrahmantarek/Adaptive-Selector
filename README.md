@@ -411,11 +411,110 @@ AdaptiveSelector<String>.sideSheet(
 
 ## 19. Programmatic API: show.dropdown (customBuilder)
 
-Open dropdown overlay programmatically anchored by LayerLink or measured Rect.
+Open dropdown overlay programmatically anchored by LayerLink or measured Rect. The `customBuilder` parameter allows you to completely customize the dropdown content while maintaining automatic closing behavior.
+
+### Key Concepts:
+
+- **customBuilder**: Bypasses default list rendering and gives you full control over the dropdown UI
+- **select(value)**: Callback to select a value; automatically calls `onChanged` and closes the dropdown (when `autoCloseOnSelect: true`)
+- **close()**: Callback to manually close the dropdown without selecting a value
+- **autoCloseOnSelect**: Controls whether `select(value)` automatically closes the dropdown (default: `true`)
+
+### Example 1: Basic customBuilder with LayerLink (Auto-close on select)
 
 ```dart
-// LayerLink anchoring
+// State variables
+String? selectedFruit;
 final link = LayerLink();
+
+// UI
+CompositedTransformTarget(
+  link: link,
+  child: ElevatedButton(
+    onPressed: () async {
+      await AdaptiveSelector.show.dropdown<String>(
+        context: context,
+        anchorLink: link,           // Preferred for dynamic positioning
+        panelWidth: 280,
+        anchorHeight: 40,
+        autoCloseOnSelect: true,    // Default: closes automatically on select
+        onChanged: (v) => setState(() => selectedFruit = v),
+        customBuilder: (ctx, select, close) {
+          // Custom UI with icons and styled layout
+          final opts = fruits.take(6).toList();
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header with close button
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.apple, color: Colors.red),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Select Your Fruit',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, size: 20),
+                      onPressed: close,  // Manual close without selection
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Custom list with icons
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemCount: opts.length,
+                  itemBuilder: (c, i) {
+                    final fruit = opts[i];
+                    final isSelected = fruit == selectedFruit;
+                    return ListTile(
+                      dense: true,
+                      leading: Icon(
+                        Icons.check_circle,
+                        color: isSelected ? Colors.green : Colors.grey[300],
+                      ),
+                      title: Text(
+                        fruit,
+                        style: TextStyle(
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      onTap: () => select(fruit),  // Calls onChanged + auto-closes
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    },
+    child: Text(selectedFruit ?? 'Select Fruit'),
+  ),
+)
+```
+
+### Example 2: Multi-select with autoCloseOnSelect: false
+
+```dart
+// State variables
+Set<String> selectedCountries = {};
+final link = LayerLink();
+
+// UI
 CompositedTransformTarget(
   link: link,
   child: ElevatedButton(
@@ -423,44 +522,208 @@ CompositedTransformTarget(
       await AdaptiveSelector.show.dropdown<String>(
         context: context,
         anchorLink: link,
-        panelWidth: 260,
-        anchorHeight: 40,
-        onChanged: (v) => setState((){}),
+        panelWidth: 300,
+        autoCloseOnSelect: false,  // Keep dropdown open for multi-select
+        onChanged: (v) {
+          // Toggle selection
+          setState(() {
+            if (selectedCountries.contains(v)) {
+              selectedCountries.remove(v);
+            } else {
+              selectedCountries.add(v);
+            }
+          });
+        },
         customBuilder: (ctx, select, close) {
-          final opts = fruits.take(6).toList();
-          return Column(mainAxisSize: MainAxisSize.min, children: [
-            const Padding(padding: EdgeInsets.all(12), child: Text('Custom Dropdown (Link)', style: TextStyle(fontWeight: FontWeight.bold))),
-            const Divider(height: 1),
-            Flexible(child: ListView.separated(shrinkWrap: true, itemCount: opts.length, separatorBuilder: (_, __)=>const Divider(height:1), itemBuilder: (c,i){ final it = opts[i]; return ListTile(dense:true,title:Text(it), onTap: ()=> select(it));})),
-            Align(alignment: Alignment.centerRight, child: TextButton(onPressed: close, child: const Text('Cancel'))),
-          ]);
+          final opts = countries.take(8).toList();
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Select Countries (Multi-select)',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Text(
+                      '${selectedCountries.length} selected',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+              // Checkbox list
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemCount: opts.length,
+                  itemBuilder: (c, i) {
+                    final country = opts[i];
+                    final isSelected = selectedCountries.contains(country);
+                    return CheckboxListTile(
+                      dense: true,
+                      value: isSelected,
+                      title: Text(country),
+                      onChanged: (_) => select(country),  // Doesn't close (autoCloseOnSelect: false)
+                    );
+                  },
+                ),
+              ),
+              const Divider(height: 1),
+              // Done button (manual close)
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: close,  // Manual close when done
+                      child: const Text('Done'),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
         },
       );
     },
-    child: const Text('Open (LayerLink)'),
+    child: Text(
+      selectedCountries.isEmpty
+          ? 'Select Countries'
+          : '${selectedCountries.length} selected',
+    ),
   ),
 )
+```
 
-// Rect anchoring
+### Example 3: Rect anchoring with custom UI
+
+```dart
+// State variable
+String? selectedItem;
 final key = GlobalKey();
+
+// UI
 ElevatedButton(
   key: key,
   onPressed: () async {
+    // Get button position and size
     final box = key.currentContext!.findRenderObject() as RenderBox;
-    final topLeft = box.localToGlobal(Offset.zero); final size = box.size;
+    final topLeft = box.localToGlobal(Offset.zero);
+    final size = box.size;
     final rect = Rect.fromLTWH(topLeft.dx, topLeft.dy, size.width, size.height);
+
     await AdaptiveSelector.show.dropdown<String>(
       context: context,
-      anchorRect: rect,
+      anchorRect: rect,        // Static positioning using Rect
       panelWidth: 260,
       anchorHeight: size.height,
-      onChanged: (v) => setState((){}),
-      customBuilder: (ctx, select, close) { /* same as above */ return const SizedBox(); },
+      verticalOffset: 8,
+      onChanged: (v) => setState(() => selectedItem = v),
+      customBuilder: (ctx, select, close) {
+        // Custom card-style layout
+        return Material(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Custom action buttons
+                _buildActionButton(
+                  icon: Icons.edit,
+                  label: 'Edit',
+                  onTap: () => select('edit'),
+                ),
+                _buildActionButton(
+                  icon: Icons.share,
+                  label: 'Share',
+                  onTap: () => select('share'),
+                ),
+                _buildActionButton(
+                  icon: Icons.delete,
+                  label: 'Delete',
+                  color: Colors.red,
+                  onTap: () => select('delete'),
+                ),
+                const Divider(),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: close,
+                    child: const Text('Cancel'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   },
-  child: const Text('Open (Rect)'),
+  child: const Text('Actions'),
 )
+
+// Helper widget
+Widget _buildActionButton({
+  required IconData icon,
+  required String label,
+  required VoidCallback onTap,
+  Color? color,
+}) {
+  return InkWell(
+    onTap: onTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, color: color ?? Colors.blue),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              color: color ?? Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
 ```
+
+### Notes:
+
+- **LayerLink** is preferred for dynamic positioning (handles scrolling, resizing automatically)
+- **Rect** is useful for static positioning or when you need precise control
+- The dropdown automatically positions itself above/below the anchor based on available space
+- `customBuilder` receives three parameters:
+  1. `BuildContext ctx` - Build context for the dropdown content
+  2. `void Function(T) select` - Callback to select a value (calls `onChanged` + auto-closes if enabled)
+  3. `VoidCallback close` - Callback to close without selecting
+- When `autoCloseOnSelect: true` (default), calling `select(value)` will automatically close the dropdown
+- When `autoCloseOnSelect: false`, you must manually call `close()` to dismiss the dropdown
+- The dropdown overlay is removed safely when closed, no need to call `Navigator.pop()`
 
 ## 20. Programmatic API: show.dropdownOrSheet
 

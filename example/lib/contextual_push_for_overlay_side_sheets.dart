@@ -1,4 +1,3 @@
-
 import 'package:adaptive_selector/adaptive_selector.dart';
 import 'package:flutter/material.dart';
 
@@ -62,7 +61,7 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
           ); // -1 top, 0 center, 1 bottom
           final angleTurns =
               dxFraction *
-                  0.02; // subtle rotation proportional to horizontal shift
+              0.02; // subtle rotation proportional to horizontal shift
 
           return AnimatedRotation(
             alignment: alignment,
@@ -112,15 +111,15 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
                           },
                           itemBuilder: (context, item) => Text(item),
                           hint:
-                          'Open Left Side Sheet (Overlay + Contextual Push)',
+                              'Open Left Side Sheet (Overlay + Contextual Push)',
                           useContextualPush: true,
                           maxContextualPushOffset: 0.0,
                           onContextualPushOffsetChanged: (v) =>
                               setState(() => _pushPx = v),
                           onContextualPushPivotYChanged: (v) =>
-                          _pivotY.value = v,
+                              _pivotY.value = v,
                           onContextualPushPivotXChanged: (v) =>
-                          _pivotX.value = v,
+                              _pivotX.value = v,
                           enableSearch: true,
                           footerWidget: Text("ssss"),
                         ),
@@ -154,9 +153,9 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
                             onContextualPushOffsetChanged: (v) =>
                                 setState(() => _pushPx = v),
                             onContextualPushPivotYChanged: (v) =>
-                            _pivotY.value = v,
+                                _pivotY.value = v,
                             onContextualPushPivotXChanged: (v) =>
-                            _pivotX.value = v,
+                                _pivotX.value = v,
                             footerWidget: Text("footerWidget"),
                             headerWidget: Text("headerWidget"),
                           );
@@ -195,7 +194,7 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
                                     padding: const EdgeInsets.all(16),
                                     child: Row(
                                       mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
                                         const Text(
                                           'Custom Header',
@@ -248,9 +247,9 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
                             onContextualPushOffsetChanged: (v) =>
                                 setState(() => _pushPx = v),
                             onContextualPushPivotYChanged: (v) =>
-                            _pivotY.value = v,
+                                _pivotY.value = v,
                             onContextualPushPivotXChanged: (v) =>
-                            _pivotX.value = v,
+                                _pivotX.value = v,
                             // Ensure select() updates the demo state
                             onChanged: (v) =>
                                 setState(() => selectedLeftItem = v),
@@ -275,15 +274,15 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
                           },
                           itemBuilder: (context, item) => Text(item),
                           hint:
-                          'Open Right Side Sheet (Overlay + Contextual Push)',
+                              'Open Right Side Sheet (Overlay + Contextual Push)',
                           useContextualPush: true,
                           maxContextualPushOffset: 24.0,
                           onContextualPushOffsetChanged: (v) =>
                               setState(() => _pushPx = v),
                           onContextualPushPivotYChanged: (v) =>
-                          _pivotY.value = v,
+                              _pivotY.value = v,
                           onContextualPushPivotXChanged: (v) =>
-                          _pivotX.value = v,
+                              _pivotX.value = v,
                           enableSearch: true,
                         ),
                       ),

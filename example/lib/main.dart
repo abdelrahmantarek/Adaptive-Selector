@@ -68,6 +68,14 @@ class _MyHomePageState extends State<MyHomePage> {
   String? selectedDropdownViaLink;
   String? selectedDropdownViaRect;
 
+  // Enhanced customBuilder examples
+  late LayerLink _dropdownEnhancedLink;
+  String? selectedFruitEnhanced;
+  late LayerLink _dropdownMultiSelectLink;
+  Set<String> selectedCountriesMulti = {};
+  final GlobalKey _dropdownActionsKey = GlobalKey();
+  String? selectedAction;
+
   // Programmatic show.*: dropdownOrSheet examples (Rect anchoring)
   final GlobalKey _dropdownOrSheetRectKeySimple = GlobalKey();
   final GlobalKey _dropdownOrSheetRectKeyCustom = GlobalKey();
@@ -95,6 +103,8 @@ class _MyHomePageState extends State<MyHomePage> {
     // Initialize LayerLink in initState to prevent hot reload issues
     _calendarAnchorLink = LayerLink();
     _dropdownAnchorLink = LayerLink();
+    _dropdownEnhancedLink = LayerLink();
+    _dropdownMultiSelectLink = LayerLink();
   }
 
   final List<String> countries = [
@@ -1375,6 +1385,353 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const SizedBox(height: 16),
 
+            // Enhanced customBuilder examples
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildSectionTitle('Enhanced customBuilder Examples'),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Comprehensive examples demonstrating customBuilder with icons, multi-select, and action menus.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Example 1: Enhanced UI with icons
+                    const Text(
+                      '1. Enhanced UI with Icons (Auto-close)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    CompositedTransformTarget(
+                      link: _dropdownEnhancedLink,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.apple, size: 18),
+                        onPressed: () async {
+                          await AdaptiveSelector.show.dropdown<String>(
+                            context: context,
+                            anchorLink: _dropdownEnhancedLink,
+                            panelWidth: 280,
+                            anchorHeight: 40,
+                            autoCloseOnSelect: true,
+                            onChanged: (v) =>
+                                setState(() => selectedFruitEnhanced = v),
+                            customBuilder: (ctx, select, close) {
+                              final opts = fruits.take(6).toList();
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Header with close button
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.apple,
+                                          color: Colors.red,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        const Expanded(
+                                          child: Text(
+                                            'Select Your Fruit',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.close,
+                                            size: 20,
+                                          ),
+                                          onPressed: close,
+                                          padding: EdgeInsets.zero,
+                                          constraints: const BoxConstraints(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Divider(height: 1),
+                                  // Custom list with icons
+                                  Flexible(
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      padding: EdgeInsets.zero,
+                                      itemCount: opts.length,
+                                      itemBuilder: (c, i) {
+                                        final fruit = opts[i];
+                                        final isSelected =
+                                            fruit == selectedFruitEnhanced;
+                                        return ListTile(
+                                          dense: true,
+                                          leading: Icon(
+                                            Icons.check_circle,
+                                            color: isSelected
+                                                ? Colors.green
+                                                : Colors.grey[300],
+                                          ),
+                                          title: Text(
+                                            fruit,
+                                            style: TextStyle(
+                                              fontWeight: isSelected
+                                                  ? FontWeight.bold
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
+                                          onTap: () => select(fruit),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        label: Text(selectedFruitEnhanced ?? 'Select Fruit'),
+                      ),
+                    ),
+                    if (selectedFruitEnhanced != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Selected: $selectedFruitEnhanced',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+
+                    // Example 2: Multi-select
+                    const Text(
+                      '2. Multi-select (autoCloseOnSelect: false)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    CompositedTransformTarget(
+                      link: _dropdownMultiSelectLink,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.public, size: 18),
+                        onPressed: () async {
+                          await AdaptiveSelector.show.dropdown<String>(
+                            context: context,
+                            anchorLink: _dropdownMultiSelectLink,
+                            panelWidth: 300,
+                            autoCloseOnSelect: false,
+                            onChanged: (v) {
+                              setState(() {
+                                if (selectedCountriesMulti.contains(v)) {
+                                  selectedCountriesMulti.remove(v);
+                                } else {
+                                  selectedCountriesMulti.add(v);
+                                }
+                              });
+                            },
+                            customBuilder: (ctx, select, close) {
+                              final opts = countries.take(8).toList();
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Header
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Row(
+                                      children: [
+                                        const Expanded(
+                                          child: Text(
+                                            'Select Countries',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                        Text(
+                                          '${selectedCountriesMulti.length} selected',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Divider(height: 1),
+                                  // Checkbox list
+                                  Flexible(
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      padding: EdgeInsets.zero,
+                                      itemCount: opts.length,
+                                      itemBuilder: (c, i) {
+                                        final country = opts[i];
+                                        final isSelected =
+                                            selectedCountriesMulti.contains(
+                                              country,
+                                            );
+                                        return CheckboxListTile(
+                                          dense: true,
+                                          value: isSelected,
+                                          title: Text(country),
+                                          onChanged: (_) => select(country),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const Divider(height: 1),
+                                  // Done button
+                                  Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton(
+                                          onPressed: close,
+                                          child: const Text('Done'),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                        label: Text(
+                          selectedCountriesMulti.isEmpty
+                              ? 'Select Countries'
+                              : '${selectedCountriesMulti.length} selected',
+                        ),
+                      ),
+                    ),
+                    if (selectedCountriesMulti.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Selected: ${selectedCountriesMulti.join(", ")}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+
+                    // Example 3: Actions menu with Rect
+                    const Text(
+                      '3. Actions Menu (Rect anchoring)',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      key: _dropdownActionsKey,
+                      icon: const Icon(Icons.more_vert, size: 18),
+                      onPressed: () async {
+                        final box =
+                            _dropdownActionsKey.currentContext!
+                                    .findRenderObject()
+                                as RenderBox;
+                        final topLeft = box.localToGlobal(Offset.zero);
+                        final size = box.size;
+                        final rect = Rect.fromLTWH(
+                          topLeft.dx,
+                          topLeft.dy,
+                          size.width,
+                          size.height,
+                        );
+
+                        await AdaptiveSelector.show.dropdown<String>(
+                          context: context,
+                          anchorRect: rect,
+                          panelWidth: 260,
+                          anchorHeight: size.height,
+                          verticalOffset: 8,
+                          onChanged: (v) => setState(() => selectedAction = v),
+                          customBuilder: (ctx, select, close) {
+                            return Material(
+                              child: Container(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Quick Actions',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    _buildActionButton(
+                                      icon: Icons.edit,
+                                      label: 'Edit',
+                                      onTap: () => select('edit'),
+                                    ),
+                                    _buildActionButton(
+                                      icon: Icons.share,
+                                      label: 'Share',
+                                      onTap: () => select('share'),
+                                    ),
+                                    _buildActionButton(
+                                      icon: Icons.copy,
+                                      label: 'Copy',
+                                      onTap: () => select('copy'),
+                                    ),
+                                    _buildActionButton(
+                                      icon: Icons.delete,
+                                      label: 'Delete',
+                                      color: Colors.red,
+                                      onTap: () => select('delete'),
+                                    ),
+                                    const Divider(),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        onPressed: close,
+                                        child: const Text('Cancel'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                      label: const Text('Actions'),
+                    ),
+                    if (selectedAction != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          'Action: $selectedAction',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
             const Card(
               color: Color(0xFFFFF3E0),
               child: Padding(
@@ -1656,6 +2013,30 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Text(value, style: const TextStyle(color: Colors.blue)),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Row(
+          children: [
+            Icon(icon, color: color ?? Colors.black87, size: 20),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(fontSize: 15, color: color ?? Colors.black87),
+            ),
+          ],
+        ),
       ),
     );
   }
