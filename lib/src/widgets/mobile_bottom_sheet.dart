@@ -8,7 +8,8 @@ class MobileBottomSheet<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
   final String? hint;
@@ -45,6 +46,11 @@ class MobileBottomSheet<T> extends StatefulWidget {
   /// - Auto-close the sheet when [autoCloseOnSelect] is true (default)
   ///
   /// The provided `close()` will always close only this bottom sheet instance.
+  ///
+  /// The [itemBuilder] callback receives three parameters:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
   static Future<void> openModal<T>({
     required BuildContext context,
     AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
@@ -52,7 +58,7 @@ class MobileBottomSheet<T> extends StatefulWidget {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -198,6 +204,7 @@ class _MobileBottomSheetState<T> extends State<MobileBottomSheet<T>> {
                       child: widget.itemBuilder(
                         context,
                         widget.selectedValue as T,
+                        true,
                       ),
                     )
                   : Text(
@@ -221,7 +228,8 @@ class _BottomSheetContent<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
   final Future<List<T>> Function(String query)? onSearch;
@@ -402,7 +410,7 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
                           : (widget.style.textColor ?? Colors.black87),
                       fontSize: 16,
                     ),
-                child: widget.itemBuilder(context, item),
+                child: widget.itemBuilder(context, item, isSelected),
               ),
             ),
             if (isSelected)

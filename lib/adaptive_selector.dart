@@ -75,7 +75,9 @@ class AdaptiveSelector<T> extends StatefulWidget {
   final void Function(T value) onChanged;
 
   /// Function to build the display representation of each option.
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  /// The third parameter (bool isSelected) indicates whether the item is currently selected.
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
 
   /// Whether to enable search functionality. Default is false.
   final bool enableSearch;
@@ -628,6 +630,11 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// Either provide list-mode params (options/onChanged/itemBuilder), or supply a
   /// fully custom builder via [customBuilder]. When [customBuilder] is provided,
   /// list params can be omitted.
+  ///
+  /// The [itemBuilder] callback receives three parameters:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
   @Deprecated(
     'Use AdaptiveSelector.show.sideSheet() instead. This method will be removed in a future major release.',
   )
@@ -640,7 +647,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -741,9 +748,7 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       options: widget.options,
       selectedValue: widget.selectedValue,
       onChanged: widget.onChanged,
-      // Wrap itemBuilder to add isSelected parameter
-      itemBuilder: (context, item, isSelected) =>
-          widget.itemBuilder(context, item),
+      itemBuilder: widget.itemBuilder,
       enableSearch: widget.enableSearch,
       style: style,
       hint: widget.hint,
@@ -837,6 +842,11 @@ class AdaptiveSelectorShow {
 
   /// Programmatically open a side sheet overlay (nested style).
   /// Usage: await AdaptiveSelector.show.sideSheet(...)
+  ///
+  /// The [itemBuilder] callback receives three parameters:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
   Future<void> sideSheet<T>({
     required BuildContext context,
     required bool isLeftSide,
@@ -846,7 +856,7 @@ class AdaptiveSelectorShow {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -897,6 +907,12 @@ class AdaptiveSelectorShow {
 
   /// Programmatically open a bottom sheet (mobile-style) overlay.
   /// Usage: await AdaptiveSelector.show.bottomSheet(...)
+  /// Programmatically open a mobile-style bottom sheet.
+  ///
+  /// The [itemBuilder] callback receives three parameters:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
   Future<void> bottomSheet<T>({
     required BuildContext context,
     AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
@@ -904,7 +920,7 @@ class AdaptiveSelectorShow {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -1064,10 +1080,7 @@ class AdaptiveSelectorShow {
         options: options,
         selectedValue: selectedValue,
         onChanged: onChanged,
-        // Wrap itemBuilder to remove isSelected parameter for bottom sheet
-        itemBuilder: itemBuilder != null
-            ? (context, item) => itemBuilder(context, item, false)
-            : null,
+        itemBuilder: itemBuilder,
         enableSearch: enableSearch,
         hint: hint,
         onSearch: onSearch,
@@ -1109,6 +1122,11 @@ class AdaptiveSelectorShow {
   /// Programmatic automatic mode: chooses BottomSheet for small screens and
   /// SideSheet for large screens based on [breakpoint]. For desktop, the side
   /// sheet opens on the left by default unless [isLeftSide] is set to false.
+  ///
+  /// The [itemBuilder] callback receives three parameters:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
   Future<void> adaptive<T>({
     required BuildContext context,
     double breakpoint = 600,
@@ -1117,7 +1135,7 @@ class AdaptiveSelectorShow {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -1213,7 +1231,7 @@ Future<void> openSideSheetOverlay<T>({
   required List<T> options,
   required T? selectedValue,
   required void Function(T value) onChanged,
-  required Widget Function(BuildContext, T) itemBuilder,
+  required Widget Function(BuildContext, T, bool) itemBuilder,
   bool enableSearch = false,
   String? hint,
   Future<List<T>> Function(String query)? onSearch,

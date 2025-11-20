@@ -109,7 +109,7 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
                           onChanged: (value) {
                             setState(() => selectedLeftItem = value);
                           },
-                          itemBuilder: (context, item) => Text(item),
+                          itemBuilder: (context, item, isSelected) => Text(item),
                           hint:
                               'Open Left Side Sheet (Overlay + Contextual Push)',
                           useContextualPush: true,
@@ -272,7 +272,7 @@ class _ContextualPushExampleState extends State<ContextualPushExample> {
                           onChanged: (value) {
                             setState(() => selectedRightItem = value);
                           },
-                          itemBuilder: (context, item) => Text(item),
+                          itemBuilder: (context, item, isSelected) => Text(item),
                           hint:
                               'Open Right Side Sheet (Overlay + Contextual Push)',
                           useContextualPush: true,

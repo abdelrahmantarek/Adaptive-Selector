@@ -16,7 +16,8 @@ class SideSheet<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
   final String? hint;
@@ -79,6 +80,11 @@ class SideSheet<T> extends StatefulWidget {
   /// using the triggering widget's edge coordinate for precise edge alignment:
   /// - For a left sheet, pass dx = trigger's LEFT edge and dy = trigger center Y.
   /// - For a right sheet, pass dx = trigger's RIGHT edge and dy = trigger center Y.
+  ///
+  /// The [itemBuilder] callback receives three parameters:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
   static Future<void> openOverlay<T>({
     required BuildContext context,
     required bool isLeftSide,
@@ -87,7 +93,7 @@ class SideSheet<T> extends StatefulWidget {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -159,8 +165,8 @@ class SideSheet<T> extends StatefulWidget {
 
     // Fallbacks for optional list-mode params when using customBuilder
     final void Function(T value) onChanged0 = onChanged ?? (_) {};
-    final Widget Function(BuildContext, T) itemBuilder0 =
-        itemBuilder ?? (BuildContext _, T item) => Text('$item');
+    final Widget Function(BuildContext, T, bool) itemBuilder0 =
+        itemBuilder ?? (BuildContext _, T item, bool __) => Text('$item');
 
     final future = showGeneralDialog(
       context: context,
@@ -410,6 +416,7 @@ class _SideSheetState<T> extends State<SideSheet<T>> {
                       child: widget.itemBuilder(
                         context,
                         widget.selectedValue as T,
+                        true,
                       ),
                     )
                   : Text(
@@ -433,7 +440,8 @@ class _SideSheetContent<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
   final Future<List<T>> Function(String query)? onSearch;
@@ -626,7 +634,11 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
                                         Colors.blue)
                                   : (widget.style.textColor ?? Colors.black87),
                             ),
-                            child: widget.itemBuilder(context, item),
+                            child: widget.itemBuilder(
+                              context,
+                              item,
+                              isSelected,
+                            ),
                           ),
                         ),
                       );
@@ -672,7 +684,8 @@ class _SideSheetDrawerContent<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
   final Future<List<T>> Function(String query)? onSearch;
@@ -836,7 +849,7 @@ class _SideSheetDrawerContentState<T>
                                       Colors.blue)
                                 : (widget.style.textColor ?? Colors.black87),
                           ),
-                          child: widget.itemBuilder(context, item),
+                          child: widget.itemBuilder(context, item, isSelected),
                         ),
                       ),
                     );

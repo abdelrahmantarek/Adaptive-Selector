@@ -72,7 +72,7 @@ class _PushBehaviorExampleState extends State<PushBehaviorExample> {
                       selectedLeftItem = value;
                     });
                   },
-                  itemBuilder: (context, item) => Text(item),
+                  itemBuilder: (context, item, isSelected) => Text(item),
                   hint: 'Open Left Side Sheet (Push)',
                   usePushBehavior: true,
                   scaffoldKey: _scaffoldKey,
@@ -94,7 +94,7 @@ class _PushBehaviorExampleState extends State<PushBehaviorExample> {
                       selectedRightItem = value;
                     });
                   },
-                  itemBuilder: (context, item) => Text(item),
+                  itemBuilder: (context, item, isSelected) => Text(item),
                   hint: 'Open Right Side Sheet (Push)',
                   usePushBehavior: true,
                   scaffoldKey: _scaffoldKey,

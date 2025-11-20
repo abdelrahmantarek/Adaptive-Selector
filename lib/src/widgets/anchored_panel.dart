@@ -12,7 +12,8 @@ class AnchoredPanel<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
   final String? hint;
@@ -420,7 +421,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
           _filteredOptions = widget.options.where((item) {
             // Convert item to string using itemBuilder
             final itemText = widget
-                .itemBuilder(context, item)
+                .itemBuilder(context, item, false)
                 .toString()
                 .toLowerCase();
             return itemText.contains(lowerQuery);
@@ -482,7 +483,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
                 ? (widget.style.selectedTextColor ?? Colors.blue)
                 : (widget.style.textColor ?? Colors.black87),
           ),
-          child: widget.itemBuilder(context, item),
+          child: widget.itemBuilder(context, item, isSelected),
         ),
       ),
     );
@@ -528,6 +529,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
                       child: widget.itemBuilder(
                         context,
                         widget.selectedValue as T,
+                        true,
                       ),
                     )
                   : Text(

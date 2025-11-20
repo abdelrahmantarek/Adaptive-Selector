@@ -180,7 +180,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedFruit = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Select a fruit',
             ),
             const SizedBox(height: 32),
@@ -198,7 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedCountry = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Select a country',
               enableSearch: true,
             ),
@@ -217,7 +217,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedNumber = value;
                 });
               },
-              itemBuilder: (context, item) => Text('Number $item'),
+              itemBuilder: (context, item, isSelected) => Text('Number $item'),
               hint: 'Pick a number',
               enableSearch: true,
               style: const AdaptiveSelectorStyle(
@@ -244,7 +244,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedAsyncItem = value;
                 });
               },
-              itemBuilder: (context, item) => Row(
+              itemBuilder: (context, item, isSelected) => Row(
                 children: [
                   const Icon(Icons.cloud, size: 16, color: Colors.blue),
                   const SizedBox(width: 8),
@@ -310,7 +310,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedForcedMobile = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Always shows bottom sheet',
               mode: AdaptiveSelectorMode.alwaysMobile,
               style: const AdaptiveSelectorStyle(
@@ -334,7 +334,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedForcedDesktop = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Always shows dropdown',
               mode: AdaptiveSelectorMode.alwaysDesktop,
               enableSearch: true,
@@ -359,7 +359,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedLeftSheet = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Select from left sheet',
               mode: AdaptiveSelectorMode.leftSheet,
               enableSearch: true,
@@ -407,7 +407,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedRightSheet = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Select from right sheet',
               mode: AdaptiveSelectorMode.rightSheet,
               enableSearch: true,
@@ -446,7 +446,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedSmallSheet = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Select from small sheet',
               mode: AdaptiveSelectorMode.leftSheet,
               sideSheetSize: SideSheetSize.small,
@@ -472,7 +472,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedLargeSheet = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Select from large sheet',
               mode: AdaptiveSelectorMode.rightSheet,
               sideSheetSize: SideSheetSize.large,
@@ -515,7 +515,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedFullSheet = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Select from full sheet',
               mode: AdaptiveSelectorMode.leftSheet,
               sideSheetSize: SideSheetSize.full,
@@ -553,7 +553,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedAdvanced = value;
                 });
               },
-              itemBuilder: (context, item) => Padding(
+              itemBuilder: (context, item, isSelected) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
@@ -659,7 +659,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedWithSafeArea = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'With SafeArea (default)',
               mode: AdaptiveSelectorMode.bottomSheet,
               useSafeArea: true, // Default behavior
@@ -684,7 +684,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   selectedWithoutSafeArea = value;
                 });
               },
-              itemBuilder: (context, item) => Text(item),
+              itemBuilder: (context, item, isSelected) => Text(item),
               hint: 'Without SafeArea',
               mode: AdaptiveSelectorMode.leftSheet,
               useSafeArea: false, // Disable SafeArea
@@ -853,7 +853,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                     selectedTimeSlot = value;
                                   });
                                 },
-                                itemBuilder: (context, item) => Text(item),
+                                itemBuilder: (context, item, isSelected) => Text(item),
                                 anchorLink: _calendarAnchorLink,
                                 anchorPosition: AnchorPosition.right,
                                 anchorOffset: const Offset(8, 0),
@@ -997,7 +997,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 selectedFruit = value;
                               });
                             },
-                            itemBuilder: (context, item) => Text(item),
+                            itemBuilder: (context, item, isSelected) => Text(item),
                             hint: 'Left Side Sheet',
                             sideSheetSize: SideSheetSize.medium,
                             style: const AdaptiveSelectorStyle(
@@ -1017,7 +1017,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 selectedFruit = value;
                               });
                             },
-                            itemBuilder: (context, item) => Text(item),
+                            itemBuilder: (context, item, isSelected) => Text(item),
                             hint: 'Right Side Sheet',
                             sideSheetSize: SideSheetSize.medium,
                             style: const AdaptiveSelectorStyle(
@@ -1044,7 +1044,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           selectedFruit = value;
                         });
                       },
-                      itemBuilder: (context, item) => Text(item),
+                      itemBuilder: (context, item, isSelected) => Text(item),
                       hint: 'Bottom Sheet',
                       enableSearch: true,
                       style: const AdaptiveSelectorStyle(
@@ -1068,7 +1068,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           selectedFruit = value;
                         });
                       },
-                      itemBuilder: (context, item) => Text(item),
+                      itemBuilder: (context, item, isSelected) => Text(item),
                       hint: 'Dropdown',
                       enableSearch: true,
                       dropdownHeaderWidget: const Padding(
