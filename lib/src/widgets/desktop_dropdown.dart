@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/adaptive_selector_style.dart';
 import '../utils/search_helper.dart';
@@ -110,7 +111,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
       });
     }
     if (widget.isMultiSelect &&
-        widget.selectedValues != oldWidget.selectedValues) {
+        !listEquals(widget.selectedValues, _localSelectedValues)) {
       setState(() {
         _localSelectedValues = List<T>.from(widget.selectedValues);
       });
@@ -154,6 +155,11 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   }
 
   void _showOverlay() {
+    if (widget.isMultiSelect) {
+      // Each time the dropdown opens, sync the local selection state with the
+      // latest external selectedValues to avoid stale selections.
+      _localSelectedValues = List<T>.from(widget.selectedValues);
+    }
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
     _isOpen = true;

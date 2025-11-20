@@ -1573,6 +1573,67 @@ void main() {
       expect(find.text('Option 1'), findsWidgets);
       expect(selectedValue, 'Option 1');
     });
+    testWidgets('dropdown multi-select syncs external selectedValues', (
+      WidgetTester tester,
+    ) async {
+      String? selectedValue;
+      List<String> selectedValues = [];
+      late StateSetter stateSetter;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                stateSetter = setState;
+                return AdaptiveSelector<String>.dropdown(
+                  options: const ['Option 1', 'Option 2', 'Option 3'],
+                  selectedValue: selectedValue,
+                  onChanged: (value) {
+                    selectedValue = value;
+                  },
+                  itemBuilder: (context, item, isSelected) => Text(item),
+                  isMultiSelect: true,
+                  selectedValues: selectedValues,
+                  onSelectionChanged: (values) {
+                    setState(() {
+                      selectedValues = values;
+                    });
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      // Open dropdown and select two options
+      await tester.tap(find.byType(AdaptiveSelector<String>));
+      await tester.pump();
+      await tester.tap(find.text('Option 1'));
+      await tester.pump();
+      await tester.tap(find.text('Option 2'));
+      await tester.pump();
+
+      expect(selectedValues, ['Option 1', 'Option 2']);
+
+      // Close dropdown by tapping outside
+      await tester.tapAt(const Offset(0, 0));
+      await tester.pumpAndSettle();
+
+      // Externally clear selections
+      stateSetter(() {
+        selectedValues.clear();
+      });
+      await tester.pumpAndSettle();
+
+      // Reopen dropdown
+      await tester.tap(find.byType(AdaptiveSelector<String>));
+      await tester.pump();
+
+      // No items should appear as selected inside the dropdown
+      expect(find.byIcon(Icons.check_box), findsNothing);
+    });
 
     testWidgets('sideSheet constructor supports custom size', (
       WidgetTester tester,
