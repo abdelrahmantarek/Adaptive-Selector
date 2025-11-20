@@ -741,7 +741,9 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       options: widget.options,
       selectedValue: widget.selectedValue,
       onChanged: widget.onChanged,
-      itemBuilder: widget.itemBuilder,
+      // Wrap itemBuilder to add isSelected parameter
+      itemBuilder: (context, item, isSelected) =>
+          widget.itemBuilder(context, item),
       enableSearch: widget.enableSearch,
       style: style,
       hint: widget.hint,
@@ -944,6 +946,11 @@ class AdaptiveSelectorShow {
   /// Use either [anchorLink] (preferred for scroll/resize robustness) or
   /// [anchorRect] to position the dropdown. If neither provided, it will default
   /// to top-left at (0,0) which is rarely desired.
+  ///
+  /// The [itemBuilder] callback receives three parameters:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
   Future<void> dropdown<T>({
     required BuildContext context,
     AdaptiveSelectorStyle style = const AdaptiveSelectorStyle(),
@@ -951,7 +958,7 @@ class AdaptiveSelectorShow {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -1012,6 +1019,13 @@ class AdaptiveSelectorShow {
   /// Programmatic API: chooses dropdown for large screens (>= [breakpoint])
   /// and bottom sheet for small screens. In dropdown mode, [anchorLink]/[anchorRect]
   /// are used for positioning; they are ignored for bottom sheet.
+  ///
+  /// The [itemBuilder] callback receives three parameters for dropdown mode:
+  /// - BuildContext: the build context
+  /// - T: the item to build
+  /// - bool: whether the item is currently selected
+  ///
+  /// For bottom sheet mode, the isSelected parameter is ignored.
   Future<void> dropdownOrSheet<T>({
     required BuildContext context,
     double breakpoint = 600,
@@ -1020,7 +1034,7 @@ class AdaptiveSelectorShow {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -1050,7 +1064,10 @@ class AdaptiveSelectorShow {
         options: options,
         selectedValue: selectedValue,
         onChanged: onChanged,
-        itemBuilder: itemBuilder,
+        // Wrap itemBuilder to remove isSelected parameter for bottom sheet
+        itemBuilder: itemBuilder != null
+            ? (context, item) => itemBuilder(context, item, false)
+            : null,
         enableSearch: enableSearch,
         hint: hint,
         onSearch: onSearch,

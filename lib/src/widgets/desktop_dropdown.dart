@@ -9,7 +9,8 @@ class DesktopDropdown<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item) itemBuilder;
+  final Widget Function(BuildContext context, T item, bool isSelected)
+  itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
   final String? hint;
@@ -351,7 +352,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                           : (widget.style.textColor ?? Colors.black87),
                       fontSize: 16,
                     ),
-                child: widget.itemBuilder(context, item),
+                child: widget.itemBuilder(context, item, isSelected),
               ),
             ),
             if (widget.isMultiSelect)
@@ -431,6 +432,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                         child: widget.itemBuilder(
                           context,
                           widget.selectedValue as T,
+                          true, // selectedValue is always selected
                         ),
                       )
                     : Text(
@@ -462,7 +464,7 @@ class DesktopDropdownOverlay {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -536,7 +538,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value)? onChanged;
-  final Widget Function(BuildContext, T)? itemBuilder;
+  final Widget Function(BuildContext, T, bool)? itemBuilder;
   final bool enableSearch;
   final String? hint;
   final Future<List<T>> Function(String query)? onSearch;
@@ -829,7 +831,7 @@ class _ProgrammaticDropdownOverlayState<T>
                 children: [
                   Expanded(
                     child: (widget.itemBuilder != null)
-                        ? widget.itemBuilder!(context, item)
+                        ? widget.itemBuilder!(context, item, isSelected)
                         : Text('$item'),
                   ),
                   if (widget.isMultiSelect)

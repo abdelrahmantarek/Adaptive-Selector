@@ -1950,7 +1950,7 @@ void main() {
         options: const ['One', 'Two', 'Three'],
         selectedValue: null,
         onChanged: (v) => selected = v,
-        itemBuilder: (c, it) => Text(it),
+        itemBuilder: (c, it, isSelected) => Text(it),
       );
 
       await tester.pumpAndSettle();
@@ -2003,7 +2003,7 @@ void main() {
         options: const ['One', 'Two', 'Three'],
         selectedValue: null,
         onChanged: (_) {},
-        itemBuilder: (c, it) => Text(it),
+        itemBuilder: (c, it, isSelected) => Text(it),
       );
 
       await tester.pumpAndSettle();
@@ -2104,7 +2104,7 @@ void main() {
         options: const ['A', 'B', 'C'],
         selectedValue: null,
         onChanged: (v) => selected = v,
-        itemBuilder: (c, it) => Text(it),
+        itemBuilder: (c, it, isSelected) => Text(it),
       );
 
       await tester.pumpAndSettle();

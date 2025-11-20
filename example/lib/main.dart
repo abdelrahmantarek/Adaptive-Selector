@@ -1838,7 +1838,8 @@ class _MyHomePageState extends State<MyHomePage> {
                               onChanged: (v) => setState(
                                 () => selectedDropdownOrSheetSimple = v,
                               ),
-                              itemBuilder: (ctx, item) => Text(item),
+                              itemBuilder: (ctx, item, isSelected) =>
+                                  Text(item),
                               enableSearch: true,
                               hint: 'Pick a fruit... ',
                               headerWidget: const Padding(
