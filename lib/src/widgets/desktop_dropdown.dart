@@ -317,6 +317,8 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
               _localSelectedValues.add(item);
             }
           });
+          // Force overlay to rebuild with updated selection state
+          _overlayEntry?.markNeedsBuild();
           widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
         } else {
           widget.onChanged(item);
