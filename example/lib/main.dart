@@ -853,7 +853,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                     selectedTimeSlot = value;
                                   });
                                 },
-                                itemBuilder: (context, item, isSelected) => Text(item),
+                                itemBuilder: (context, item, isSelected) =>
+                                    Text(item),
                                 anchorLink: _calendarAnchorLink,
                                 anchorPosition: AnchorPosition.right,
                                 anchorOffset: const Offset(8, 0),
@@ -997,7 +998,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 selectedFruit = value;
                               });
                             },
-                            itemBuilder: (context, item, isSelected) => Text(item),
+                            itemBuilder: (context, item, isSelected) =>
+                                Text(item),
                             hint: 'Left Side Sheet',
                             sideSheetSize: SideSheetSize.medium,
                             style: const AdaptiveSelectorStyle(
@@ -1017,7 +1019,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 selectedFruit = value;
                               });
                             },
-                            itemBuilder: (context, item, isSelected) => Text(item),
+                            itemBuilder: (context, item, isSelected) =>
+                                Text(item),
                             hint: 'Right Side Sheet',
                             sideSheetSize: SideSheetSize.medium,
                             style: const AdaptiveSelectorStyle(
@@ -1529,16 +1532,14 @@ class _MyHomePageState extends State<MyHomePage> {
                             context: context,
                             anchorLink: _dropdownMultiSelectLink,
                             panelWidth: 300,
-                            autoCloseOnSelect: false,
-                            onChanged: (v) {
+                            isMultiSelect: true,
+                            selectedValues: selectedCountriesMulti.toList(),
+                            onSelectionChanged: (values) {
                               setState(() {
-                                if (selectedCountriesMulti.contains(v)) {
-                                  selectedCountriesMulti.remove(v);
-                                } else {
-                                  selectedCountriesMulti.add(v);
-                                }
+                                selectedCountriesMulti = values.toSet();
                               });
                             },
+                            autoCloseOnSelect: false,
                             customBuilder: (ctx, select, close) {
                               final opts = countries.take(8).toList();
                               return Column(
@@ -1587,20 +1588,6 @@ class _MyHomePageState extends State<MyHomePage> {
                                           onChanged: (_) => select(country),
                                         );
                                       },
-                                    ),
-                                  ),
-                                  const Divider(height: 1),
-                                  // Done button
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: [
-                                        TextButton(
-                                          onPressed: close,
-                                          child: const Text('Done'),
-                                        ),
-                                      ],
                                     ),
                                   ),
                                 ],

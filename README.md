@@ -523,17 +523,14 @@ CompositedTransformTarget(
         context: context,
         anchorLink: link,
         panelWidth: 300,
-        autoCloseOnSelect: false,  // Keep dropdown open for multi-select
-        onChanged: (v) {
-          // Toggle selection
+        isMultiSelect: true,
+        selectedValues: selectedCountries.toList(),
+        onSelectionChanged: (values) {
           setState(() {
-            if (selectedCountries.contains(v)) {
-              selectedCountries.remove(v);
-            } else {
-              selectedCountries.add(v);
-            }
+            selectedCountries = values.toSet();
           });
         },
+        autoCloseOnSelect: false,  // Keep dropdown open for multi-select
         customBuilder: (ctx, select, close) {
           final opts = countries.take(8).toList();
           return Column(
@@ -577,20 +574,6 @@ CompositedTransformTarget(
                       onChanged: (_) => select(country),  // Doesn't close (autoCloseOnSelect: false)
                     );
                   },
-                ),
-              ),
-              const Divider(height: 1),
-              // Done button (manual close)
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: close,  // Manual close when done
-                      child: const Text('Done'),
-                    ),
-                  ],
                 ),
               ),
             ],

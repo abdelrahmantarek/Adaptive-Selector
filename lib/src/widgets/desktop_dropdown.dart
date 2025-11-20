@@ -189,6 +189,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                             borderRadius:
                                 widget.style.borderRadius ??
                                 BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey),
                           ),
                           child: SearchLoadingOverlay(
                             isLoading: _isSearching,
@@ -909,6 +910,7 @@ class _ProgrammaticDropdownOverlayState<T>
               color: widget.style.backgroundColor ?? Colors.white,
               borderRadius:
                   widget.style.borderRadius ?? BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey),
             ),
             child: (widget.customBuilder != null)
                 ? Builder(
