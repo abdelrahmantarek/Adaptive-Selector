@@ -545,6 +545,11 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.useSafeArea = true,
     this.headerWidget,
     this.footerWidget,
+    // Multi-select support (optional; defaults keep single-select behavior)
+    this.selectedValues = const [],
+    this.onSelectionChanged,
+    this.selectedValuesBuilder,
+    this.isMultiSelect = false,
   }) : mode = AdaptiveSelectorMode.bottomSheet,
        breakpoint = 600,
        dropdownHeaderWidget = null,
@@ -561,11 +566,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
        anchorLink = null,
        anchorPosition = AnchorPosition.auto,
        anchorOffset = const Offset(8, 0),
-       anchorPanelWidth = 300,
-       selectedValues = const [],
-       onSelectionChanged = null,
-       selectedValuesBuilder = null,
-       isMultiSelect = false;
+       anchorPanelWidth = 300;
 
   /// Creates a dropdown selector.
   ///
@@ -780,6 +781,10 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       headerWidget: widget.headerWidget,
       footerWidget: widget.footerWidget,
       useSafeArea: widget.useSafeArea,
+      selectedValues: widget.selectedValues,
+      onSelectionChanged: widget.onSelectionChanged,
+      selectedValuesBuilder: widget.selectedValuesBuilder,
+      isMultiSelect: widget.isMultiSelect,
     );
   }
 
@@ -931,8 +936,13 @@ class AdaptiveSelectorShow {
     bool useSafeArea = true,
     // Bottom sheet maximum height in logical pixels. Defaults to 75% of screen height.
     double? maxHeight,
-    // Whether select(value) should auto-close (applies to customBuilder path)
-    bool autoCloseOnSelect = true,
+    // Whether select(value) should auto-close (defaults to false in multi-select mode)
+    bool? autoCloseOnSelect,
+    // Multi-select support
+    List<T> selectedValues = const [],
+    ValueChanged<List<T>>? onSelectionChanged,
+    Widget Function(BuildContext, List<T>)? selectedValuesBuilder,
+    bool isMultiSelect = false,
     // Fully custom content builder (bypasses list rendering when provided)
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
@@ -954,6 +964,10 @@ class AdaptiveSelectorShow {
       useSafeArea: useSafeArea,
       maxHeight: maxHeight,
       autoCloseOnSelect: autoCloseOnSelect,
+      selectedValues: selectedValues,
+      onSelectionChanged: onSelectionChanged,
+      selectedValuesBuilder: selectedValuesBuilder,
+      isMultiSelect: isMultiSelect,
       customBuilder: customBuilder,
     );
   }
@@ -1059,7 +1073,12 @@ class AdaptiveSelectorShow {
     Widget? headerWidget,
     Widget? footerWidget,
     bool useSafeArea = true,
-    bool autoCloseOnSelect = true,
+    bool? autoCloseOnSelect,
+    // Multi-select support
+    List<T> selectedValues = const [],
+    ValueChanged<List<T>>? onSelectionChanged,
+    Widget Function(BuildContext, List<T>)? selectedValuesBuilder,
+    bool isMultiSelect = false,
     // Custom content
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
@@ -1091,6 +1110,10 @@ class AdaptiveSelectorShow {
         useSafeArea: useSafeArea,
         maxHeight: bottomSheetMaxHeight,
         autoCloseOnSelect: autoCloseOnSelect,
+        selectedValues: selectedValues,
+        onSelectionChanged: onSelectionChanged,
+        selectedValuesBuilder: selectedValuesBuilder,
+        isMultiSelect: isMultiSelect,
         customBuilder: customBuilder,
       );
     } else {
@@ -1109,7 +1132,10 @@ class AdaptiveSelectorShow {
         headerWidget: headerWidget,
         footerWidget: footerWidget,
         customBuilder: customBuilder,
-        autoCloseOnSelect: autoCloseOnSelect,
+        autoCloseOnSelect: autoCloseOnSelect ?? true,
+        selectedValues: selectedValues,
+        onSelectionChanged: onSelectionChanged,
+        isMultiSelect: isMultiSelect,
         anchorLink: anchorLink,
         anchorRect: anchorRect,
         panelWidth: panelWidth,
@@ -1144,7 +1170,12 @@ class AdaptiveSelectorShow {
     Widget? headerWidget,
     Widget? footerWidget,
     bool useSafeArea = true,
-    bool autoCloseOnSelect = true,
+    bool? autoCloseOnSelect,
+    // Multi-select support
+    List<T> selectedValues = const [],
+    ValueChanged<List<T>>? onSelectionChanged,
+    Widget Function(BuildContext, List<T>)? selectedValuesBuilder,
+    bool isMultiSelect = false,
     // Custom content
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
@@ -1179,6 +1210,10 @@ class AdaptiveSelectorShow {
         useSafeArea: useSafeArea,
         maxHeight: bottomSheetMaxHeight,
         autoCloseOnSelect: autoCloseOnSelect,
+        selectedValues: selectedValues,
+        onSelectionChanged: onSelectionChanged,
+        selectedValuesBuilder: selectedValuesBuilder,
+        isMultiSelect: isMultiSelect,
         customBuilder: customBuilder,
       );
     } else {
@@ -1199,7 +1234,7 @@ class AdaptiveSelectorShow {
         headerWidget: headerWidget,
         footerWidget: footerWidget,
         useSafeArea: useSafeArea,
-        autoCloseOnSelect: autoCloseOnSelect,
+        autoCloseOnSelect: autoCloseOnSelect ?? true,
         customBuilder: customBuilder,
         useContextualPush: useContextualPush,
         triggerPosition: triggerPosition,

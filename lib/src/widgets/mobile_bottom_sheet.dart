@@ -19,6 +19,11 @@ class MobileBottomSheet<T> extends StatefulWidget {
   final Widget? headerWidget;
   final Widget? footerWidget;
   final bool useSafeArea;
+  // Multi-select support
+  final List<T> selectedValues;
+  final ValueChanged<List<T>>? onSelectionChanged;
+  final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
+  final bool isMultiSelect;
 
   const MobileBottomSheet({
     super.key,
@@ -35,6 +40,11 @@ class MobileBottomSheet<T> extends StatefulWidget {
     this.headerWidget,
     this.footerWidget,
     this.useSafeArea = true,
+    // Multi-select
+    this.selectedValues = const [],
+    this.onSelectionChanged,
+    this.selectedValuesBuilder,
+    this.isMultiSelect = false,
   });
 
   /// Programmatic API to open the bottom sheet overlay.
@@ -42,8 +52,9 @@ class MobileBottomSheet<T> extends StatefulWidget {
   /// can be omitted and you can render fully custom content.
   ///
   /// The provided `select(value)` will:
-  /// - Call `onChanged(value)` if provided
-  /// - Auto-close the sheet when [autoCloseOnSelect] is true (default)
+  /// - In single-select mode: Call `onChanged(value)` if provided
+  /// - In multi-select mode: Toggle the value in the selection list
+  /// - Auto-close the sheet when [autoCloseOnSelect] is true (default in single-select, false in multi-select)
   ///
   /// The provided `close()` will always close only this bottom sheet instance.
   ///
@@ -70,13 +81,21 @@ class MobileBottomSheet<T> extends StatefulWidget {
     // Bottom sheet maximum height in logical pixels. Defaults to 75% of screen height.
     double? maxHeight,
     // Whether select(value) should close the sheet automatically
-    bool autoCloseOnSelect = true,
+    bool? autoCloseOnSelect,
+    // Multi-select support
+    List<T> selectedValues = const [],
+    ValueChanged<List<T>>? onSelectionChanged,
+    Widget Function(BuildContext, List<T>)? selectedValuesBuilder,
+    bool isMultiSelect = false,
     // Fully custom content builder
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
   }) {
     // Capture the same Navigator used to open the sheet to guarantee correct close()
     final navigator = Navigator.of(context);
+
+    // Default autoCloseOnSelect based on mode
+    final effectiveAutoClose = autoCloseOnSelect ?? !isMultiSelect;
 
     return showModalBottomSheet(
       context: context,
@@ -86,7 +105,7 @@ class MobileBottomSheet<T> extends StatefulWidget {
         if (customBuilder != null) {
           void select(T v) {
             if (onChanged != null) onChanged(v);
-            if (autoCloseOnSelect) navigator.pop();
+            if (effectiveAutoClose) navigator.pop();
           }
 
           void close() => navigator.pop();
@@ -111,13 +130,14 @@ class MobileBottomSheet<T> extends StatefulWidget {
         }
 
         assert(
-          itemBuilder != null && onChanged != null,
-          'itemBuilder and onChanged must be provided when customBuilder is null',
+          itemBuilder != null &&
+              (onChanged != null || onSelectionChanged != null),
+          'itemBuilder and (onChanged or onSelectionChanged) must be provided when customBuilder is null',
         );
         return _BottomSheetContent<T>(
           options: options,
           selectedValue: selectedValue,
-          onChanged: onChanged!,
+          onChanged: onChanged ?? (_) {},
           itemBuilder: itemBuilder!,
           enableSearch: enableSearch,
           style: style,
@@ -128,6 +148,10 @@ class MobileBottomSheet<T> extends StatefulWidget {
           footerWidget: footerWidget,
           useSafeArea: useSafeArea,
           maxHeight: maxHeight,
+          selectedValues: selectedValues,
+          onSelectionChanged: onSelectionChanged,
+          isMultiSelect: isMultiSelect,
+          autoCloseOnSelect: effectiveAutoClose,
         );
       },
     );
@@ -166,6 +190,11 @@ class _MobileBottomSheetState<T> extends State<MobileBottomSheet<T>> {
         headerWidget: widget.headerWidget,
         footerWidget: widget.footerWidget,
         useSafeArea: widget.useSafeArea,
+        selectedValues: widget.selectedValues,
+        onSelectionChanged: widget.onSelectionChanged,
+        isMultiSelect: widget.isMultiSelect,
+        autoCloseOnSelect:
+            !widget.isMultiSelect, // Default: don't auto-close in multi-select
       ),
     );
   }
@@ -193,6 +222,29 @@ class _MobileBottomSheetState<T> extends State<MobileBottomSheet<T>> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
+                  : widget.isMultiSelect
+                  ? (widget.selectedValues.isNotEmpty
+                        ? (widget.selectedValuesBuilder != null
+                              ? widget.selectedValuesBuilder!(
+                                  context,
+                                  widget.selectedValues,
+                                )
+                              : Text(
+                                  '${widget.selectedValues.length} selected',
+                                  style: TextStyle(
+                                    color:
+                                        widget.style.textColor ??
+                                        Colors.black87,
+                                    fontSize: 16,
+                                  ),
+                                ))
+                        : Text(
+                            widget.hint ?? 'Select options',
+                            style: TextStyle(
+                              color: Colors.grey.shade600,
+                              fontSize: 16,
+                            ),
+                          ))
                   : widget.selectedValue != null
                   ? DefaultTextStyle(
                       style:
@@ -239,6 +291,11 @@ class _BottomSheetContent<T> extends StatefulWidget {
   final Widget? footerWidget;
   final bool useSafeArea;
   final double? maxHeight;
+  // Multi-select support
+  final List<T> selectedValues;
+  final ValueChanged<List<T>>? onSelectionChanged;
+  final bool isMultiSelect;
+  final bool autoCloseOnSelect;
 
   const _BottomSheetContent({
     required this.options,
@@ -254,6 +311,11 @@ class _BottomSheetContent<T> extends StatefulWidget {
     this.footerWidget,
     this.useSafeArea = true,
     this.maxHeight,
+    // Multi-select
+    this.selectedValues = const [],
+    this.onSelectionChanged,
+    this.isMultiSelect = false,
+    this.autoCloseOnSelect = true,
   });
 
   @override
@@ -264,11 +326,16 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
   final TextEditingController _searchController = TextEditingController();
   List<T> _filteredOptions = [];
   bool _isSearching = false;
+  // Local working copy for multi-select to update UI immediately
+  List<T> _localSelectedValues = [];
 
   @override
   void initState() {
     super.initState();
     _filteredOptions = widget.options;
+    if (widget.isMultiSelect) {
+      _localSelectedValues = List<T>.from(widget.selectedValues);
+    }
   }
 
   @override
@@ -372,7 +439,9 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
       itemCount: _filteredOptions.length,
       itemBuilder: (context, index) {
         final item = _filteredOptions[index];
-        final isSelected = item == widget.selectedValue;
+        final isSelected = widget.isMultiSelect
+            ? _localSelectedValues.contains(item)
+            : item == widget.selectedValue;
         return _buildBottomSheetItem(item, isSelected);
       },
     );
@@ -381,8 +450,22 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
   Widget _buildBottomSheetItem(T item, bool isSelected) {
     return InkWell(
       onTap: () {
-        widget.onChanged(item);
-        Navigator.pop(context);
+        if (widget.isMultiSelect) {
+          setState(() {
+            if (_localSelectedValues.contains(item)) {
+              _localSelectedValues.remove(item);
+            } else {
+              _localSelectedValues.add(item);
+            }
+          });
+          widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
+          if (widget.autoCloseOnSelect) {
+            Navigator.pop(context);
+          }
+        } else {
+          widget.onChanged(item);
+          Navigator.pop(context);
+        }
       },
       child: Container(
         constraints: BoxConstraints(minHeight: widget.style.itemHeight ?? 56),
@@ -413,7 +496,13 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
                 child: widget.itemBuilder(context, item, isSelected),
               ),
             ),
-            if (isSelected)
+            if (widget.isMultiSelect)
+              Checkbox(
+                value: isSelected,
+                onChanged: null, // Handled by InkWell tap
+                activeColor: widget.style.selectedTextColor ?? Colors.blue,
+              )
+            else if (isSelected)
               Icon(
                 Icons.check,
                 color: widget.style.selectedTextColor ?? Colors.blue,
