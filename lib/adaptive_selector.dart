@@ -59,6 +59,18 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// The currently selected value.
   final T? selectedValue;
 
+  /// The currently selected values for multi-select mode. Empty when single-select.
+  final List<T> selectedValues;
+
+  /// Callback when the multi-selection list changes. Null in single-select.
+  final ValueChanged<List<T>>? onSelectionChanged;
+
+  /// Optional builder for how to render the selected values in the trigger when multi-select.
+  final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
+
+  /// Whether the selector operates in multi-select mode.
+  final bool isMultiSelect;
+
   /// Callback function that triggers when user selects an option.
   final void Function(T value) onChanged;
 
@@ -401,7 +413,10 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.anchorPanelWidth = 300,
     this.headerWidget,
     this.footerWidget,
-  });
+  }) : selectedValues = const [],
+       onSelectionChanged = null,
+       selectedValuesBuilder = null,
+       isMultiSelect = false;
 
   /// Explicit adaptive constructor for discoverability.
   ///
@@ -437,7 +452,11 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.anchorPanelWidth = 300,
     this.headerWidget,
     this.footerWidget,
-  }) : mode = AdaptiveSelectorMode.automatic;
+  }) : mode = AdaptiveSelectorMode.automatic,
+       selectedValues = const [],
+       onSelectionChanged = null,
+       selectedValuesBuilder = null,
+       isMultiSelect = false;
 
   /// Creates a side sheet selector.
   ///
@@ -488,7 +507,11 @@ class AdaptiveSelector<T> extends StatefulWidget {
        anchorLink = null,
        anchorPosition = AnchorPosition.auto,
        anchorOffset = const Offset(8, 0),
-       anchorPanelWidth = 300;
+       anchorPanelWidth = 300,
+       selectedValues = const [],
+       onSelectionChanged = null,
+       selectedValuesBuilder = null,
+       isMultiSelect = false;
 
   /// Creates a bottom sheet selector.
   ///
@@ -536,7 +559,11 @@ class AdaptiveSelector<T> extends StatefulWidget {
        anchorLink = null,
        anchorPosition = AnchorPosition.auto,
        anchorOffset = const Offset(8, 0),
-       anchorPanelWidth = 300;
+       anchorPanelWidth = 300,
+       selectedValues = const [],
+       onSelectionChanged = null,
+       selectedValuesBuilder = null,
+       isMultiSelect = false;
 
   /// Creates a dropdown selector.
   ///
@@ -572,6 +599,11 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.isLoading = false,
     this.dropdownHeaderWidget,
     this.dropdownFooterWidget,
+    // Multi-select support (optional; defaults keep single-select behavior)
+    this.selectedValues = const [],
+    this.onSelectionChanged,
+    this.selectedValuesBuilder,
+    this.isMultiSelect = false,
   }) : mode = AdaptiveSelectorMode.dropdown,
        breakpoint = 600,
        sideSheetSize = SideSheetSize.medium,
@@ -718,6 +750,11 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       isLoading: widget.isLoading,
       dropdownHeaderWidget: widget.dropdownHeaderWidget,
       dropdownFooterWidget: widget.dropdownFooterWidget,
+      // Multi-select wiring
+      isMultiSelect: widget.isMultiSelect,
+      selectedValues: widget.selectedValues,
+      onSelectionChanged: widget.onSelectionChanged,
+      selectedValuesBuilder: widget.selectedValuesBuilder,
     );
   }
 
@@ -922,6 +959,10 @@ class AdaptiveSelectorShow {
     bool isLoading = false,
     Widget? headerWidget,
     Widget? footerWidget,
+    // Multi-select support (optional)
+    List<T> selectedValues = const [],
+    ValueChanged<List<T>>? onSelectionChanged,
+    bool isMultiSelect = false,
     // Fully custom content builder (bypasses list rendering when provided)
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
@@ -954,8 +995,12 @@ class AdaptiveSelectorShow {
       isLoading: isLoading,
       headerWidget: headerWidget,
       footerWidget: footerWidget,
+      // Multi-select threading
+      selectedValues: selectedValues,
+      onSelectionChanged: onSelectionChanged,
+      isMultiSelect: isMultiSelect,
       customBuilder: customBuilder,
-      autoCloseOnSelect: autoCloseOnSelect,
+      autoCloseOnSelect: isMultiSelect ? false : autoCloseOnSelect,
       anchorLink: anchorLink,
       anchorRect: anchorRect,
       panelWidth: panelWidth,

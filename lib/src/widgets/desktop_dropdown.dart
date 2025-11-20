@@ -18,6 +18,11 @@ class DesktopDropdown<T> extends StatefulWidget {
   final bool isLoading;
   final Widget? dropdownHeaderWidget;
   final Widget? dropdownFooterWidget;
+  // Multi-select support
+  final List<T> selectedValues;
+  final ValueChanged<List<T>>? onSelectionChanged;
+  final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
+  final bool isMultiSelect;
 
   const DesktopDropdown({
     super.key,
@@ -33,6 +38,11 @@ class DesktopDropdown<T> extends StatefulWidget {
     this.isLoading = false,
     this.dropdownHeaderWidget,
     this.dropdownFooterWidget,
+    // Multi-select
+    this.selectedValues = const [],
+    this.onSelectionChanged,
+    this.selectedValuesBuilder,
+    this.isMultiSelect = false,
   });
 
   @override
@@ -47,6 +57,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   final LayerLink _layerLink = LayerLink();
   bool _isOpen = false;
   bool _isSearching = false;
+  // Local working copy for multi-select to update UI immediately
+  List<T> _localSelectedValues = [];
+
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -55,6 +68,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   void initState() {
     super.initState();
     _filteredOptions = widget.options;
+    if (widget.isMultiSelect) {
+      _localSelectedValues = List<T>.from(widget.selectedValues);
+    }
 
     // Initialize animation controller
     _animationController = AnimationController(
@@ -83,6 +99,12 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
     if (widget.options != oldWidget.options) {
       setState(() {
         _filteredOptions = widget.options;
+      });
+    }
+    if (widget.isMultiSelect &&
+        widget.selectedValues != oldWidget.selectedValues) {
+      setState(() {
+        _localSelectedValues = List<T>.from(widget.selectedValues);
       });
     }
   }
@@ -275,7 +297,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
       itemCount: _filteredOptions.length,
       itemBuilder: (context, index) {
         final item = _filteredOptions[index];
-        final isSelected = item == widget.selectedValue;
+        final bool isSelected = widget.isMultiSelect
+            ? _localSelectedValues.contains(item)
+            : item == widget.selectedValue;
         return _buildDropdownItem(item, isSelected);
       },
     );
@@ -284,12 +308,23 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   Widget _buildDropdownItem(T item, bool isSelected) {
     return InkWell(
       onTap: () {
-        widget.onChanged(item);
-        _removeOverlay();
-        _searchController.clear();
-        setState(() {
-          _filteredOptions = widget.options;
-        });
+        if (widget.isMultiSelect) {
+          setState(() {
+            if (_localSelectedValues.contains(item)) {
+              _localSelectedValues.remove(item);
+            } else {
+              _localSelectedValues.add(item);
+            }
+          });
+          widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
+        } else {
+          widget.onChanged(item);
+          _removeOverlay();
+          _searchController.clear();
+          setState(() {
+            _filteredOptions = widget.options;
+          });
+        }
       },
       child: Container(
         constraints: BoxConstraints(minHeight: widget.style.itemHeight ?? 48),
@@ -302,18 +337,32 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                     Colors.blue.withValues(alpha: 0.1))
               : null,
         ),
-        child: DefaultTextStyle(
-          style:
-              (isSelected
-                  ? widget.style.selectedTextStyle
-                  : widget.style.textStyle) ??
-              TextStyle(
+        child: Row(
+          children: [
+            Expanded(
+              child: DefaultTextStyle(
+                style:
+                    (isSelected
+                        ? widget.style.selectedTextStyle
+                        : widget.style.textStyle) ??
+                    TextStyle(
+                      color: isSelected
+                          ? (widget.style.selectedTextColor ?? Colors.blue)
+                          : (widget.style.textColor ?? Colors.black87),
+                      fontSize: 16,
+                    ),
+                child: widget.itemBuilder(context, item),
+              ),
+            ),
+            if (widget.isMultiSelect)
+              Icon(
+                isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                size: 20,
                 color: isSelected
                     ? (widget.style.selectedTextColor ?? Colors.blue)
-                    : (widget.style.textColor ?? Colors.black87),
-                fontSize: 16,
+                    : (widget.style.textColor ?? Colors.black54),
               ),
-          child: widget.itemBuilder(context, item),
+          ],
         ),
       ),
     );
@@ -344,6 +393,33 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                         width: 20,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
+                    : widget.isMultiSelect
+                    ? (widget.selectedValuesBuilder != null
+                          ? DefaultTextStyle(
+                              style:
+                                  widget.style.textStyle ??
+                                  TextStyle(
+                                    color:
+                                        widget.style.textColor ??
+                                        Colors.black87,
+                                    fontSize: 16,
+                                  ),
+                              child: widget.selectedValuesBuilder!(
+                                context,
+                                _localSelectedValues,
+                              ),
+                            )
+                          : Text(
+                              _localSelectedValues.isNotEmpty
+                                  ? '${_localSelectedValues.length} selected'
+                                  : (widget.hint ?? 'Select options'),
+                              style: TextStyle(
+                                color: _localSelectedValues.isNotEmpty
+                                    ? (widget.style.textColor ?? Colors.black87)
+                                    : Colors.grey.shade600,
+                                fontSize: 16,
+                              ),
+                            ))
                     : widget.selectedValue != null
                     ? DefaultTextStyle(
                         style:
@@ -394,6 +470,10 @@ class DesktopDropdownOverlay {
     bool isLoading = false,
     Widget? headerWidget,
     Widget? footerWidget,
+    // Multi-select support
+    List<T> selectedValues = const [],
+    ValueChanged<List<T>>? onSelectionChanged,
+    bool isMultiSelect = false,
     // Fully custom content builder
     Widget Function(BuildContext, void Function(T), VoidCallback)?
     customBuilder,
@@ -431,8 +511,12 @@ class DesktopDropdownOverlay {
         isLoading: isLoading,
         headerWidget: headerWidget,
         footerWidget: footerWidget,
+        // Multi-select threading
+        selectedValues: selectedValues,
+        onSelectionChanged: onSelectionChanged,
+        isMultiSelect: isMultiSelect,
         customBuilder: customBuilder,
-        autoCloseOnSelect: autoCloseOnSelect,
+        autoCloseOnSelect: isMultiSelect ? false : autoCloseOnSelect,
         anchorLink: anchorLink,
         anchorRect: anchorRect,
         panelWidth: panelWidth,
@@ -460,6 +544,11 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
   final bool isLoading;
   final Widget? headerWidget;
   final Widget? footerWidget;
+  // Multi-select support
+  final List<T> selectedValues;
+  final ValueChanged<List<T>>? onSelectionChanged;
+  final bool isMultiSelect;
+
   final Widget Function(BuildContext, void Function(T), VoidCallback)?
   customBuilder;
   final bool autoCloseOnSelect;
@@ -483,6 +572,10 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
     this.isLoading = false,
     this.headerWidget,
     this.footerWidget,
+    // Multi-select
+    this.selectedValues = const [],
+    this.onSelectionChanged,
+    this.isMultiSelect = false,
     this.customBuilder,
     this.autoCloseOnSelect = true,
     this.anchorLink,
@@ -507,6 +600,9 @@ class _ProgrammaticDropdownOverlayState<T>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  // Local working copy for multi-select selections
+  List<T> _selectedValues = [];
+
   final GlobalKey _panelKey = GlobalKey();
   bool _placeAboveFollower = false; // false => below, true => above
   double _dxFollower = 0; // horizontal correction to keep panel within screen
@@ -557,7 +653,10 @@ class _ProgrammaticDropdownOverlayState<T>
     // Horizontal correction to keep within screen bounds
     final double left = topLeft.dx;
     final double maxLeft = screenSize.width - size.width - edgePadding;
-    final double clampedLeft = left.clamp(edgePadding, maxLeft);
+    // Ensure min <= max for clamp, otherwise use the constrained value directly
+    final double clampedLeft = maxLeft >= edgePadding
+        ? left.clamp(edgePadding, maxLeft)
+        : edgePadding;
     final double newDx = _dxFollower + (clampedLeft - left);
 
     bool changed = false;
@@ -589,6 +688,10 @@ class _ProgrammaticDropdownOverlayState<T>
       duration: widget.style.animationDuration,
       vsync: this,
     );
+    if (widget.isMultiSelect) {
+      _selectedValues = List<T>.from(widget.selectedValues);
+    }
+
     _fadeAnimation = CurvedAnimation(
       parent: _animationController,
       curve: Curves.easeInOut,
@@ -673,12 +776,27 @@ class _ProgrammaticDropdownOverlayState<T>
       itemCount: _filteredOptions.length,
       itemBuilder: (context, index) {
         final item = _filteredOptions[index];
-        final isSelected = item == widget.selectedValue;
+        final bool isSelected = widget.isMultiSelect
+            ? _selectedValues.contains(item)
+            : item == widget.selectedValue;
         return InkWell(
           onTap: () {
-            widget.onChanged?.call(item);
-            _searchController.clear();
-            if (widget.autoCloseOnSelect) widget.onClose();
+            if (widget.isMultiSelect) {
+              setState(() {
+                if (_selectedValues.contains(item)) {
+                  _selectedValues.remove(item);
+                } else {
+                  _selectedValues.add(item);
+                }
+              });
+              widget.onSelectionChanged?.call(List<T>.from(_selectedValues));
+              _searchController.clear();
+              if (widget.autoCloseOnSelect) widget.onClose();
+            } else {
+              widget.onChanged?.call(item);
+              _searchController.clear();
+              if (widget.autoCloseOnSelect) widget.onClose();
+            }
           },
           child: Container(
             constraints: widget.itemBuilder != null
@@ -707,9 +825,25 @@ class _ProgrammaticDropdownOverlayState<T>
                         : (widget.style.textColor ?? Colors.black87),
                     fontSize: 16,
                   ),
-              child: (widget.itemBuilder != null)
-                  ? widget.itemBuilder!(context, item)
-                  : Text('$item'),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: (widget.itemBuilder != null)
+                        ? widget.itemBuilder!(context, item)
+                        : Text('$item'),
+                  ),
+                  if (widget.isMultiSelect)
+                    Icon(
+                      isSelected
+                          ? Icons.check_box
+                          : Icons.check_box_outline_blank,
+                      color: isSelected
+                          ? (widget.style.selectedTextColor ?? Colors.blue)
+                          : (widget.style.textColor ?? Colors.black54),
+                      size: 20,
+                    ),
+                ],
+              ),
             ),
           ),
         );
@@ -769,8 +903,22 @@ class _ProgrammaticDropdownOverlayState<T>
                 ? Builder(
                     builder: (ctx) {
                       void select(T v) {
-                        widget.onChanged?.call(v);
-                        if (widget.autoCloseOnSelect) widget.onClose();
+                        if (widget.isMultiSelect) {
+                          setState(() {
+                            if (_selectedValues.contains(v)) {
+                              _selectedValues.remove(v);
+                            } else {
+                              _selectedValues.add(v);
+                            }
+                          });
+                          widget.onSelectionChanged?.call(
+                            List<T>.from(_selectedValues),
+                          );
+                          if (widget.autoCloseOnSelect) widget.onClose();
+                        } else {
+                          widget.onChanged?.call(v);
+                          if (widget.autoCloseOnSelect) widget.onClose();
+                        }
                       }
 
                       return widget.customBuilder!(ctx, select, widget.onClose);
