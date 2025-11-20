@@ -310,15 +310,18 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
     return InkWell(
       onTap: () {
         if (widget.isMultiSelect) {
-          setState(() {
-            if (_localSelectedValues.contains(item)) {
-              _localSelectedValues.remove(item);
-            } else {
-              _localSelectedValues.add(item);
-            }
-          });
-          // Force overlay to rebuild with updated selection state
+          // Update local selection state
+          if (_localSelectedValues.contains(item)) {
+            _localSelectedValues.remove(item);
+          } else {
+            _localSelectedValues.add(item);
+          }
+
+          // Rebuild both the overlay and the main widget
+          setState(() {});
           _overlayEntry?.markNeedsBuild();
+
+          // Notify parent of selection change
           widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
         } else {
           widget.onChanged(item);
@@ -357,7 +360,8 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                 child: widget.itemBuilder(context, item, isSelected),
               ),
             ),
-            if (widget.isMultiSelect)
+            if (widget.isMultiSelect) ...[
+              const SizedBox(width: 8),
               Icon(
                 isSelected ? Icons.check_box : Icons.check_box_outline_blank,
                 size: 20,
@@ -365,6 +369,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                     ? (widget.style.selectedTextColor ?? Colors.blue)
                     : (widget.style.textColor ?? Colors.black54),
               ),
+            ],
           ],
         ),
       ),
@@ -836,7 +841,8 @@ class _ProgrammaticDropdownOverlayState<T>
                         ? widget.itemBuilder!(context, item, isSelected)
                         : Text('$item'),
                   ),
-                  if (widget.isMultiSelect)
+                  if (widget.isMultiSelect) ...[
+                    const SizedBox(width: 8),
                     Icon(
                       isSelected
                           ? Icons.check_box
@@ -846,6 +852,7 @@ class _ProgrammaticDropdownOverlayState<T>
                           : (widget.style.textColor ?? Colors.black54),
                       size: 20,
                     ),
+                  ],
                 ],
               ),
             ),
