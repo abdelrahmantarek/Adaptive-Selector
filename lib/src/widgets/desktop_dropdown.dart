@@ -25,6 +25,12 @@ class DesktopDropdown<T> extends StatefulWidget {
   final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
   final bool isMultiSelect;
 
+  /// Whether the dropdown should automatically close when an item is selected.
+  ///
+  /// Only applies to single-select mode. In multi-select mode the dropdown
+  /// always stays open so the user can select multiple items.
+  final bool autoCloseWhenSelect;
+
   const DesktopDropdown({
     super.key,
     required this.options,
@@ -44,6 +50,7 @@ class DesktopDropdown<T> extends StatefulWidget {
     this.onSelectionChanged,
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
+    this.autoCloseWhenSelect = true,
   });
 
   @override
@@ -326,7 +333,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
           widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
         } else {
           widget.onChanged(item);
-          _removeOverlay();
+          if (widget.autoCloseWhenSelect) {
+            _removeOverlay();
+          }
           _searchController.clear();
           setState(() {
             _filteredOptions = widget.options;

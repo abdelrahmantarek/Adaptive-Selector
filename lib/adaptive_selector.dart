@@ -123,6 +123,13 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// Can be used for footers, action buttons, or any custom content.
   final Widget? dropdownFooterWidget;
 
+  /// Whether the desktop dropdown should automatically close when an item is
+  /// selected.
+  ///
+  /// Only applies when using dropdown / alwaysDesktop modes. Ignored for
+  /// bottom sheets and side sheets. Defaults to true.
+  final bool autoCloseWhenSelect;
+
   /// The UI mode for the selector.
   ///
   /// Controls whether the selector should automatically adapt based on screen
@@ -398,6 +405,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.isLoading = false,
     this.dropdownHeaderWidget,
     this.dropdownFooterWidget,
+    this.autoCloseWhenSelect = true,
     this.mode = AdaptiveSelectorMode.automatic,
     this.sideSheetSize = SideSheetSize.medium,
     this.useSafeArea = true,
@@ -438,6 +446,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.isLoading = false,
     this.dropdownHeaderWidget,
     this.dropdownFooterWidget,
+    this.autoCloseWhenSelect = true,
     this.sideSheetSize = SideSheetSize.medium,
     this.useSafeArea = true,
     this.usePushBehavior = false,
@@ -510,6 +519,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
        anchorPosition = AnchorPosition.auto,
        anchorOffset = const Offset(8, 0),
        anchorPanelWidth = 300,
+       autoCloseWhenSelect = true,
        selectedValues = const [],
        onSelectionChanged = null,
        selectedValuesBuilder = null,
@@ -566,7 +576,8 @@ class AdaptiveSelector<T> extends StatefulWidget {
        anchorLink = null,
        anchorPosition = AnchorPosition.auto,
        anchorOffset = const Offset(8, 0),
-       anchorPanelWidth = 300;
+       anchorPanelWidth = 300,
+       autoCloseWhenSelect = true;
 
   /// Creates a dropdown selector.
   ///
@@ -602,6 +613,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.isLoading = false,
     this.dropdownHeaderWidget,
     this.dropdownFooterWidget,
+    this.autoCloseWhenSelect = true,
     // Multi-select support (optional; defaults keep single-select behavior)
     this.selectedValues = const [],
     this.onSelectionChanged,
@@ -758,6 +770,7 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       isLoading: widget.isLoading,
       dropdownHeaderWidget: widget.dropdownHeaderWidget,
       dropdownFooterWidget: widget.dropdownFooterWidget,
+      autoCloseWhenSelect: widget.autoCloseWhenSelect,
       // Multi-select wiring
       isMultiSelect: widget.isMultiSelect,
       selectedValues: widget.selectedValues,

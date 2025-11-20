@@ -1511,6 +1511,68 @@ void main() {
       expect(find.text('Option 2'), findsOneWidget);
       expect(find.text('Option 3'), findsOneWidget);
     });
+    testWidgets('dropdown constructor auto closes by default', (
+      WidgetTester tester,
+    ) async {
+      String? selectedValue;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveSelector<String>.dropdown(
+              options: const ['Option 1', 'Option 2', 'Option 3'],
+              selectedValue: selectedValue,
+              onChanged: (value) {
+                selectedValue = value;
+              },
+              itemBuilder: (context, item, isSelected) => Text(item),
+            ),
+          ),
+        ),
+      );
+
+      // Open dropdown and select an option
+      await tester.tap(find.byType(AdaptiveSelector<String>));
+      await tester.pump();
+      await tester.tap(find.text('Option 1'));
+      await tester.pump();
+
+      // Dropdown should close after selection by default
+      expect(find.text('Option 1'), findsNothing);
+      expect(selectedValue, 'Option 1');
+    });
+
+    testWidgets('dropdown constructor respects autoCloseWhenSelect = false', (
+      WidgetTester tester,
+    ) async {
+      String? selectedValue;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AdaptiveSelector<String>.dropdown(
+              options: const ['Option 1', 'Option 2', 'Option 3'],
+              selectedValue: selectedValue,
+              onChanged: (value) {
+                selectedValue = value;
+              },
+              itemBuilder: (context, item, isSelected) => Text(item),
+              autoCloseWhenSelect: false,
+            ),
+          ),
+        ),
+      );
+
+      // Open dropdown and select an option
+      await tester.tap(find.byType(AdaptiveSelector<String>));
+      await tester.pump();
+      await tester.tap(find.text('Option 1'));
+      await tester.pump();
+
+      // Dropdown should stay open even after selection
+      expect(find.text('Option 1'), findsWidgets);
+      expect(selectedValue, 'Option 1');
+    });
 
     testWidgets('sideSheet constructor supports custom size', (
       WidgetTester tester,
