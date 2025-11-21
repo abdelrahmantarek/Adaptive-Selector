@@ -202,7 +202,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                             borderRadius:
                                 widget.style.borderRadius ??
                                 BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey),
+                            border: Border.all(
+                              color: widget.style.borderColor ?? Colors.grey,
+                            ),
                           ),
                           child: SearchLoadingOverlay(
                             isLoading: _isSearching,
@@ -211,8 +213,8 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                               children: [
                                 if (widget.dropdownHeaderWidget != null)
                                   widget.dropdownHeaderWidget!,
-                                if (widget.enableSearch) _buildSearchField(),
-                                Flexible(child: _buildOptionsList()),
+                                if (widget.enableSearch) buildSearchField(),
+                                Flexible(child: buildOptionsList()),
                                 if (widget.dropdownFooterWidget != null)
                                   widget.dropdownFooterWidget!,
                               ],
@@ -231,32 +233,35 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
     );
   }
 
-  Widget _buildSearchField() {
+  Widget buildSearchField() {
+    final base =
+        widget.style.searchFieldDecoration ??
+        widget.style.searchDecoration ??
+        InputDecoration(
+          hintText: 'Search...',
+          prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        );
+
+    final decoration = base.copyWith(
+      hintText: base.hintText ?? 'Search...',
+      prefixIcon:
+          base.prefixIcon ??
+          (widget.style.searchIcon ?? const Icon(Icons.search)),
+    );
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextField(
         controller: _searchController,
-        decoration:
-            widget.style.searchDecoration ??
-            InputDecoration(
-              hintText: 'Search...',
-              prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-            ),
-        onChanged: _filterOptions,
+        decoration: decoration,
+        onChanged: filterOptions,
       ),
     );
   }
 
-  Future<void> _filterOptions(String query) async {
+  Future<void> filterOptions(String query) async {
     if (widget.onSearch != null) {
-      // Async search
       setState(() {
         _isSearching = true;
       });
@@ -268,8 +273,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
             _filteredOptions = results;
             _isSearching = false;
           });
-          // Rebuild overlay with new results without closing it
-          _rebuildOverlay();
+          rebuildOverlay();
         }
       } catch (e) {
         if (mounted) {
@@ -279,22 +283,20 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         }
       }
     } else {
-      // Sync search
       setState(() {
         _filteredOptions = SearchHelper.searchSync(widget.options, query);
       });
-      // Rebuild overlay with new results without closing it
-      _rebuildOverlay();
+      rebuildOverlay();
     }
   }
 
-  void _rebuildOverlay() {
+  void rebuildOverlay() {
     if (_isOpen && _overlayEntry != null) {
       _overlayEntry!.markNeedsBuild();
     }
   }
 
-  Widget _buildOptionsList() {
+  Widget buildOptionsList() {
     if (widget.isLoading) {
       return widget.loadingWidget ?? const DefaultLoadingWidget();
     }
@@ -315,27 +317,22 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         final bool isSelected = widget.isMultiSelect
             ? _localSelectedValues.contains(item)
             : item == widget.selectedValue;
-        return _buildDropdownItem(item, isSelected);
+        return buildDropdownItem(item, isSelected);
       },
     );
   }
 
-  Widget _buildDropdownItem(T item, bool isSelected) {
+  Widget buildDropdownItem(T item, bool isSelected) {
     return InkWell(
       onTap: () {
         if (widget.isMultiSelect) {
-          // Update local selection state
           if (_localSelectedValues.contains(item)) {
             _localSelectedValues.remove(item);
           } else {
             _localSelectedValues.add(item);
           }
-
-          // Rebuild both the overlay and the main widget
           setState(() {});
           _overlayEntry?.markNeedsBuild();
-
-          // Notify parent of selection change
           widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
         } else {
           widget.onChanged(item);
@@ -405,7 +402,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
           decoration: BoxDecoration(
             color: widget.style.backgroundColor ?? Colors.white,
             borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
-            border: Border.all(color: Colors.grey.shade300),
+            border: Border.all(
+              color: widget.style.borderColor ?? Colors.grey.shade300,
+            ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -455,7 +454,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                         child: widget.itemBuilder(
                           context,
                           widget.selectedValue as T,
-                          true, // selectedValue is always selected
+                          true,
                         ),
                       )
                     : Text(
@@ -619,28 +618,28 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
 class _ProgrammaticDropdownOverlayState<T>
     extends State<_ProgrammaticDropdownOverlay<T>>
     with SingleTickerProviderStateMixin {
-  late List<T> _filteredOptions;
-  final TextEditingController _searchController = TextEditingController();
-  bool _isSearching = false;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
+  late List<T> filteredOptions;
+  final TextEditingController searchController = TextEditingController();
+  bool isSearching = false;
+  late AnimationController animationController;
+  late Animation<double> fadeAnimation;
+  late Animation<Offset> slideAnimation;
   // Local working copy for multi-select selections
-  List<T> _selectedValues = [];
+  List<T> selectedValues = [];
 
-  final GlobalKey _panelKey = GlobalKey();
-  bool _placeAboveFollower = false; // false => below, true => above
-  double _dxFollower = 0; // horizontal correction to keep panel within screen
-  double _linkMaxHeight = 300; // dynamic max height when using LayerLink
+  final GlobalKey panelKey = GlobalKey();
+  bool placeAboveFollower = false; // false => below, true => above
+  double dxFollower = 0; // horizontal correction to keep panel within screen
+  double linkMaxHeight = 300; // dynamic max height when using LayerLink
 
-  void _scheduleFlipCheck() {
+  void scheduleFlipCheck() {
     // After each build, recompute placement for LayerLink mode to avoid overflow
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkFlipIfNeeded());
+    WidgetsBinding.instance.addPostFrameCallback((_) => checkFlipIfNeeded());
   }
 
-  void _checkFlipIfNeeded() {
+  void checkFlipIfNeeded() {
     if (widget.anchorLink == null) return; // Only relevant for LayerLink mode
-    final ctx = _panelKey.currentContext;
+    final ctx = panelKey.currentContext;
     if (ctx == null) return;
     final box = ctx.findRenderObject() as RenderBox?;
     if (box == null) return;
@@ -652,7 +651,7 @@ class _ProgrammaticDropdownOverlayState<T>
     // Infer the anchor's global top/bottom using current orientation
     late double anchorTopY;
     late double anchorBottomY;
-    if (_placeAboveFollower) {
+    if (placeAboveFollower) {
       final panelBottom = topLeft.dy + size.height;
       anchorTopY = panelBottom + widget.verticalOffset;
       anchorBottomY = anchorTopY + widget.anchorHeight;
@@ -682,114 +681,118 @@ class _ProgrammaticDropdownOverlayState<T>
     final double clampedLeft = maxLeft >= edgePadding
         ? left.clamp(edgePadding, maxLeft)
         : edgePadding;
-    final double newDx = _dxFollower + (clampedLeft - left);
+    final double newDx = dxFollower + (clampedLeft - left);
 
     bool changed = false;
-    if (desiredPlaceAbove != _placeAboveFollower) {
-      _placeAboveFollower = desiredPlaceAbove;
+    if (desiredPlaceAbove != placeAboveFollower) {
+      placeAboveFollower = desiredPlaceAbove;
       changed = true;
     }
-    if ((newMaxHeight - _linkMaxHeight).abs() > 0.5) {
-      _linkMaxHeight = newMaxHeight;
+    if ((newMaxHeight - linkMaxHeight).abs() > 0.5) {
+      linkMaxHeight = newMaxHeight;
       changed = true;
     }
-    if ((newDx - _dxFollower).abs() > 0.5) {
-      _dxFollower = newDx;
+    if ((newDx - dxFollower).abs() > 0.5) {
+      dxFollower = newDx;
       changed = true;
     }
 
     if (changed && mounted) {
       setState(() {});
       // Re-validate next frame to ensure stability after changes
-      WidgetsBinding.instance.addPostFrameCallback((_) => _checkFlipIfNeeded());
+      WidgetsBinding.instance.addPostFrameCallback((_) => checkFlipIfNeeded());
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _filteredOptions = widget.options;
-    _animationController = AnimationController(
+    filteredOptions = widget.options;
+    animationController = AnimationController(
       duration: widget.style.animationDuration,
       vsync: this,
     );
     if (widget.isMultiSelect) {
-      _selectedValues = List<T>.from(widget.selectedValues);
+      selectedValues = List<T>.from(widget.selectedValues);
     }
 
-    _fadeAnimation = CurvedAnimation(
-      parent: _animationController,
+    fadeAnimation = CurvedAnimation(
+      parent: animationController,
       curve: Curves.easeInOut,
     );
-    _slideAnimation =
+    slideAnimation =
         Tween<Offset>(begin: const Offset(0, -0.1), end: Offset.zero).animate(
           CurvedAnimation(
-            parent: _animationController,
+            parent: animationController,
             curve: Curves.easeOutCubic,
           ),
         );
     // Start animation on first frame
     WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _animationController.forward(),
+      (_) => animationController.forward(),
     );
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _animationController.dispose();
+    searchController.dispose();
+    animationController.dispose();
     super.dispose();
   }
 
-  Future<void> _filterOptions(String query) async {
+  Future<void> filterOptions(String query) async {
     if (widget.onSearch != null) {
-      setState(() => _isSearching = true);
+      setState(() => isSearching = true);
       try {
         final results = await widget.onSearch!(query);
         if (!mounted) return;
         setState(() {
-          _filteredOptions = results;
-          _isSearching = false;
+          filteredOptions = results;
+          isSearching = false;
         });
       } catch (_) {
         if (!mounted) return;
-        setState(() => _isSearching = false);
+        setState(() => isSearching = false);
       }
     } else {
       setState(() {
-        _filteredOptions = SearchHelper.searchSync(widget.options, query);
+        filteredOptions = SearchHelper.searchSync(widget.options, query);
       });
     }
   }
 
-  Widget _buildSearchField() {
+  Widget buildSearchField() {
+    final base =
+        widget.style.searchFieldDecoration ??
+        widget.style.searchDecoration ??
+        InputDecoration(
+          hintText: widget.hint ?? 'Search...',
+          prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        );
+
+    final decoration = base.copyWith(
+      hintText: base.hintText ?? (widget.hint ?? 'Search...'),
+      prefixIcon:
+          base.prefixIcon ??
+          (widget.style.searchIcon ?? const Icon(Icons.search)),
+    );
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextField(
-        controller: _searchController,
-        decoration:
-            widget.style.searchDecoration ??
-            InputDecoration(
-              hintText: widget.hint ?? 'Search...',
-              prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-            ),
-        onChanged: _filterOptions,
+        controller: searchController,
+        decoration: decoration,
+        onChanged: filterOptions,
       ),
     );
   }
 
-  Widget _buildOptionsList() {
+  Widget buildOptionsList() {
     if (widget.isLoading) {
       return widget.loadingWidget ?? const DefaultLoadingWidget();
     }
-    if (_filteredOptions.isEmpty) {
+    if (filteredOptions.isEmpty) {
       return const Padding(
         padding: EdgeInsets.all(16.0),
         child: Center(child: Text('No options found')),
@@ -798,38 +801,34 @@ class _ProgrammaticDropdownOverlayState<T>
     return ListView.builder(
       shrinkWrap: true,
       padding: EdgeInsets.zero,
-      itemCount: _filteredOptions.length,
+      itemCount: filteredOptions.length,
       itemBuilder: (context, index) {
-        final item = _filteredOptions[index];
+        final item = filteredOptions[index];
         final bool isSelected = widget.isMultiSelect
-            ? _selectedValues.contains(item)
+            ? selectedValues.contains(item)
             : item == widget.selectedValue;
         return InkWell(
           onTap: () {
             if (widget.isMultiSelect) {
               setState(() {
-                if (_selectedValues.contains(item)) {
-                  _selectedValues.remove(item);
+                if (selectedValues.contains(item)) {
+                  selectedValues.remove(item);
                 } else {
-                  _selectedValues.add(item);
+                  selectedValues.add(item);
                 }
               });
-              widget.onSelectionChanged?.call(List<T>.from(_selectedValues));
-              _searchController.clear();
+              widget.onSelectionChanged?.call(List<T>.from(selectedValues));
+              searchController.clear();
               if (widget.autoCloseOnSelect) widget.onClose();
             } else {
               widget.onChanged?.call(item);
-              _searchController.clear();
+              searchController.clear();
               if (widget.autoCloseOnSelect) widget.onClose();
             }
           },
           child: Container(
-            constraints: widget.itemBuilder != null
-                ? null // Allow custom itemBuilder to define its own height
-                : BoxConstraints(minHeight: widget.style.itemHeight ?? 48),
-            height: widget.itemBuilder != null
-                ? null // Flexible height for custom items
-                : (widget.style.itemHeight ?? 48),
+            constraints: null,
+            height: null,
             padding:
                 widget.style.padding ??
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -853,7 +852,7 @@ class _ProgrammaticDropdownOverlayState<T>
               child: Row(
                 children: [
                   Expanded(
-                    child: (widget.itemBuilder != null)
+                    child: widget.itemBuilder != null
                         ? widget.itemBuilder!(context, item, isSelected)
                         : Text('$item'),
                   ),
@@ -907,15 +906,15 @@ class _ProgrammaticDropdownOverlayState<T>
         : 0.0;
 
     final double effectiveMaxHeight = widget.anchorLink != null
-        ? _linkMaxHeight
+        ? linkMaxHeight
         : maxHeightRect;
 
     final panel = FadeTransition(
-      opacity: _fadeAnimation,
+      opacity: fadeAnimation,
       child: SlideTransition(
-        position: _slideAnimation,
+        position: slideAnimation,
         child: Material(
-          key: _panelKey,
+          key: panelKey,
           elevation: 4,
           borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
           child: Container(
@@ -925,22 +924,24 @@ class _ProgrammaticDropdownOverlayState<T>
               color: widget.style.backgroundColor ?? Colors.white,
               borderRadius:
                   widget.style.borderRadius ?? BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey),
+              border: Border.all(
+                color: widget.style.borderColor ?? Colors.grey,
+              ),
             ),
-            child: (widget.customBuilder != null)
+            child: widget.customBuilder != null
                 ? Builder(
                     builder: (ctx) {
                       void select(T v) {
                         if (widget.isMultiSelect) {
                           setState(() {
-                            if (_selectedValues.contains(v)) {
-                              _selectedValues.remove(v);
+                            if (selectedValues.contains(v)) {
+                              selectedValues.remove(v);
                             } else {
-                              _selectedValues.add(v);
+                              selectedValues.add(v);
                             }
                           });
                           widget.onSelectionChanged?.call(
-                            List<T>.from(_selectedValues),
+                            List<T>.from(selectedValues),
                           );
                           if (widget.autoCloseOnSelect) widget.onClose();
                         } else {
@@ -953,13 +954,13 @@ class _ProgrammaticDropdownOverlayState<T>
                     },
                   )
                 : SearchLoadingOverlay(
-                    isLoading: _isSearching,
+                    isLoading: isSearching,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (widget.headerWidget != null) widget.headerWidget!,
-                        if (widget.enableSearch) _buildSearchField(),
-                        Flexible(child: _buildOptionsList()),
+                        if (widget.enableSearch) buildSearchField(),
+                        Flexible(child: buildOptionsList()),
                         if (widget.footerWidget != null) widget.footerWidget!,
                       ],
                     ),
@@ -970,7 +971,7 @@ class _ProgrammaticDropdownOverlayState<T>
     );
 
     // Recompute placement for LayerLink (runs after build)
-    _scheduleFlipCheck();
+    scheduleFlipCheck();
 
     return GestureDetector(
       onTap: widget.onClose,
@@ -982,15 +983,15 @@ class _ProgrammaticDropdownOverlayState<T>
               child: CompositedTransformFollower(
                 link: widget.anchorLink!,
                 showWhenUnlinked: false,
-                targetAnchor: _placeAboveFollower
+                targetAnchor: placeAboveFollower
                     ? Alignment.topLeft
                     : Alignment.bottomLeft,
-                followerAnchor: _placeAboveFollower
+                followerAnchor: placeAboveFollower
                     ? Alignment.bottomLeft
                     : Alignment.topLeft,
                 offset: Offset(
-                  _dxFollower,
-                  _placeAboveFollower
+                  dxFollower,
+                  placeAboveFollower
                       ? -widget.verticalOffset
                       : widget.verticalOffset,
                 ),

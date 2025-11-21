@@ -39,7 +39,23 @@ class AdaptiveSelectorStyle {
   final double? itemHeight;
 
   /// Search field decoration.
+  ///
+  /// Deprecated in favor of [searchFieldDecoration]. This will continue to work
+  /// for backwards compatibility, but [searchFieldDecoration] takes precedence
+  /// when both are provided.
   final InputDecoration? searchDecoration;
+
+  /// Fully customizable search field decoration.
+  ///
+  /// If null, falls back to [searchDecoration] and then to the built-in
+  /// defaults inside each widget.
+  final InputDecoration? searchFieldDecoration;
+
+  /// Divider / separator color for list items and headers.
+  final Color? dividerColor;
+
+  /// Border color for selector surfaces (trigger, panel, sheets, etc.).
+  final Color? borderColor;
 
   /// Animation duration for dropdown animations.
   final Duration animationDuration;
@@ -58,6 +74,9 @@ class AdaptiveSelectorStyle {
     this.padding,
     this.itemHeight,
     this.searchDecoration,
+    this.searchFieldDecoration,
+    this.dividerColor,
+    this.borderColor,
     this.animationDuration = const Duration(milliseconds: 200),
   });
 
@@ -76,6 +95,9 @@ class AdaptiveSelectorStyle {
     EdgeInsets? padding,
     double? itemHeight,
     InputDecoration? searchDecoration,
+    InputDecoration? searchFieldDecoration,
+    Color? dividerColor,
+    Color? borderColor,
     Duration? animationDuration,
   }) {
     return AdaptiveSelectorStyle(
@@ -92,8 +114,11 @@ class AdaptiveSelectorStyle {
       padding: padding ?? this.padding,
       itemHeight: itemHeight ?? this.itemHeight,
       searchDecoration: searchDecoration ?? this.searchDecoration,
+      searchFieldDecoration:
+          searchFieldDecoration ?? this.searchFieldDecoration,
+      dividerColor: dividerColor ?? this.dividerColor,
+      borderColor: borderColor ?? this.borderColor,
       animationDuration: animationDuration ?? this.animationDuration,
     );
   }
 }
-

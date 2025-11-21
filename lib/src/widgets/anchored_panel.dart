@@ -375,7 +375,16 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
       child: TextField(
         controller: _searchController,
         onChanged: _filterOptions,
-        decoration: InputDecoration(
+        decoration: _buildSearchDecoration(),
+      ),
+    );
+  }
+
+  InputDecoration _buildSearchDecoration() {
+    final base =
+        widget.style.searchFieldDecoration ??
+        widget.style.searchDecoration ??
+        InputDecoration(
           hintText: 'Search...',
           prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
@@ -383,9 +392,13 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
             horizontal: 12,
             vertical: 8,
           ),
-          isDense: true,
-        ),
-      ),
+        );
+
+    return base.copyWith(
+      hintText: base.hintText ?? 'Search...',
+      prefixIcon:
+          base.prefixIcon ??
+          (widget.style.searchIcon ?? const Icon(Icons.search)),
     );
   }
 
@@ -505,7 +518,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
             border: Border.all(
               color: _isOpen
                   ? (widget.style.selectedItemColor ?? Colors.blue.shade300)
-                  : Colors.grey.shade300,
+                  : (widget.style.borderColor ?? Colors.grey.shade300),
               width: _isOpen ? 2 : 1,
             ),
           ),

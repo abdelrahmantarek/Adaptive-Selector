@@ -531,7 +531,11 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        border: Border(
+          bottom: BorderSide(
+            color: widget.style.dividerColor ?? Colors.grey.shade200,
+          ),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -765,6 +769,28 @@ class _SideSheetDrawerContentState<T>
     }
   }
 
+  InputDecoration _buildSearchDecoration() {
+    final base =
+        widget.style.searchFieldDecoration ??
+        widget.style.searchDecoration ??
+        InputDecoration(
+          hintText: 'Search...',
+          prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        );
+
+    return base.copyWith(
+      hintText: base.hintText ?? 'Search...',
+      prefixIcon:
+          base.prefixIcon ??
+          (widget.style.searchIcon ?? const Icon(Icons.search)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Calculate drawer width based on size
@@ -794,17 +820,7 @@ class _SideSheetDrawerContentState<T>
             padding: const EdgeInsets.all(16.0),
             child: TextField(
               controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
+              decoration: _buildSearchDecoration(),
               onChanged: (value) {
                 if (value.isEmpty) {
                   setState(() {

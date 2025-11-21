@@ -210,7 +210,9 @@ class _MobileBottomSheetState<T> extends State<MobileBottomSheet<T>> {
         decoration: BoxDecoration(
           color: widget.style.backgroundColor ?? Colors.white,
           borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(
+            color: widget.style.borderColor ?? Colors.grey.shade300,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -378,7 +380,11 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        border: Border(
+          bottom: BorderSide(
+            color: widget.style.dividerColor ?? Colors.grey.shade200,
+          ),
+        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -400,24 +406,34 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
     );
   }
 
+  InputDecoration _buildSearchDecoration() {
+    final base =
+        widget.style.searchFieldDecoration ??
+        widget.style.searchDecoration ??
+        InputDecoration(
+          hintText: 'Search...',
+          prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
+        );
+
+    return base.copyWith(
+      hintText: base.hintText ?? 'Search...',
+      prefixIcon:
+          base.prefixIcon ??
+          (widget.style.searchIcon ?? const Icon(Icons.search)),
+    );
+  }
+
   Widget _buildSearchField() {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: TextField(
         controller: _searchController,
-        decoration:
-            widget.style.searchDecoration ??
-            InputDecoration(
-              hintText: 'Search...',
-              prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-            ),
+        decoration: _buildSearchDecoration(),
         onChanged: _filterOptions,
       ),
     );
@@ -477,7 +493,11 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
               ? (widget.style.selectedItemColor ??
                     Colors.blue.withValues(alpha: 0.1))
               : null,
-          border: Border(bottom: BorderSide(color: Colors.grey.shade100)),
+          border: Border(
+            bottom: BorderSide(
+              color: widget.style.dividerColor ?? Colors.grey.shade100,
+            ),
+          ),
         ),
         child: Row(
           children: [
