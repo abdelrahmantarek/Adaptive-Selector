@@ -901,8 +901,23 @@ class _ProgrammaticDropdownOverlayState<T>
       maxHeightRect = safeSpace.clamp(50.0, 300.0).toDouble();
     }
 
+    // Get text direction to handle RTL/LTR correctly
+    final textDirection = Directionality.of(context);
+    final bool isRTL = textDirection == TextDirection.rtl;
+
+    // Calculate horizontal position based on text direction
     final double leftForRect = rect != null
-        ? rect.left.clamp(edgePadding, screenSize.width - width - edgePadding)
+        ? (isRTL
+              // In RTL, align to the right edge of the anchor
+              ? (screenSize.width - rect.right).clamp(
+                  edgePadding,
+                  screenSize.width - width - edgePadding,
+                )
+              // In LTR, align to the left edge of the anchor
+              : rect.left.clamp(
+                  edgePadding,
+                  screenSize.width - width - edgePadding,
+                ))
         : 0.0;
 
     final double effectiveMaxHeight = widget.anchorLink != null
