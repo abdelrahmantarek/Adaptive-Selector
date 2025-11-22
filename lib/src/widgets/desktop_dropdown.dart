@@ -903,21 +903,22 @@ class _ProgrammaticDropdownOverlayState<T>
 
     // Get text direction to handle RTL/LTR correctly
     final textDirection = Directionality.of(context);
-    final bool isLTR = textDirection == TextDirection.ltr;
+    final bool isRTL = textDirection == TextDirection.rtl;
 
     // Calculate horizontal position based on text direction
-    // For LTR: align panel's left edge with anchor's left edge
-    // For RTL: align panel's right edge with anchor's right edge
-    final double? leftForRect = rect != null && !isLTR
-        ? rect.left.clamp(edgePadding, screenSize.width - width - edgePadding)
-        : null;
-
-    final double? rightForRect = rect != null && isLTR
-        ? (screenSize.width - rect.right).clamp(
-            edgePadding,
-            screenSize.width - width - edgePadding,
-          )
-        : null;
+    // Use a single left-based coordinate for both LTR and RTL.
+    // LTR:  left edge of panel aligns with rect.left
+    // RTL:  right edge of panel aligns with rect.right -> left = rect.right - width
+    double leftForRect;
+    if (rect != null) {
+      final double rawLeft = isRTL ? (rect.right - width) : rect.left;
+      leftForRect = rawLeft.clamp(
+        edgePadding,
+        screenSize.width - width - edgePadding,
+      );
+    } else {
+      leftForRect = edgePadding;
+    }
 
     final double effectiveMaxHeight = widget.anchorLink != null
         ? linkMaxHeight
@@ -1015,16 +1016,13 @@ class _ProgrammaticDropdownOverlayState<T>
           else
             Positioned(
               left: leftForRect,
-              right: rightForRect,
               top: (rect != null && placeBelowRect)
                   ? (rect.bottom + widget.verticalOffset)
                   : null,
               bottom: (rect != null && !placeBelowRect)
                   ? ((screenSize.height - rect.top) + widget.verticalOffset)
                   : null,
-              width: (leftForRect != null || rightForRect != null)
-                  ? width
-                  : null,
+              width: width,
               child: GestureDetector(onTap: () {}, child: panel),
             ),
         ],
