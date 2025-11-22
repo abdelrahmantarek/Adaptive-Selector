@@ -1061,7 +1061,7 @@ class AdaptiveSelectorShow {
 
   /// Programmatic API: chooses dropdown for large screens (>= [breakpoint])
   /// and bottom sheet for small screens. In dropdown mode, [anchorLink]/[anchorRect]
-  /// are used for positioning; they are ignored for bottom sheet.
+  /// or [selectorKey] are used for positioning; they are ignored for bottom sheet.
   ///
   /// The [itemBuilder] callback receives three parameters for dropdown mode:
   /// - BuildContext: the build context
@@ -1100,11 +1100,32 @@ class AdaptiveSelectorShow {
     // Dropdown-only anchors (ignored for bottom sheet)
     LayerLink? anchorLink,
     Rect? anchorRect,
+    GlobalKey? selectorKey,
     double panelWidth = 0,
     double anchorHeight = 40,
     double verticalOffset = 5,
   }) {
     final width = MediaQuery.of(context).size.width;
+
+    // Derive anchorRect from selectorKey when provided and no explicit anchorRect
+    Rect? effectiveAnchorRect = anchorRect;
+    if (effectiveAnchorRect == null && selectorKey != null) {
+      final ctx = selectorKey.currentContext;
+      if (ctx != null) {
+        final box = ctx.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          final topLeft = box.localToGlobal(Offset.zero);
+          final size = box.size;
+          effectiveAnchorRect = Rect.fromLTWH(
+            topLeft.dx,
+            topLeft.dy,
+            size.width,
+            size.height,
+          );
+        }
+      }
+    }
+
     if (width < breakpoint) {
       return bottomSheet<T>(
         context: context,
@@ -1150,7 +1171,7 @@ class AdaptiveSelectorShow {
         onSelectionChanged: onSelectionChanged,
         isMultiSelect: isMultiSelect,
         anchorLink: anchorLink,
-        anchorRect: anchorRect,
+        anchorRect: effectiveAnchorRect,
         panelWidth: panelWidth,
         anchorHeight: anchorHeight,
         verticalOffset: verticalOffset,
