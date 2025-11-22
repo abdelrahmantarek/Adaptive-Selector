@@ -170,6 +170,10 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     var size = renderBox.size;
 
+    // Get text direction for RTL support
+    final textDirection = Directionality.of(context);
+    final bool isRTL = textDirection == TextDirection.rtl;
+
     return OverlayEntry(
       builder: (context) => GestureDetector(
         onTap: _removeOverlay,
@@ -181,7 +185,11 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
               child: CompositedTransformFollower(
                 link: _layerLink,
                 showWhenUnlinked: false,
-                offset: Offset(0, size.height + 5),
+                targetAnchor: isRTL
+                    ? Alignment.bottomRight
+                    : Alignment.bottomLeft,
+                followerAnchor: isRTL ? Alignment.topRight : Alignment.topLeft,
+                offset: Offset(0, 5),
                 child: GestureDetector(
                   onTap: () {
                     // Prevent closing when tapping inside the dropdown
@@ -906,18 +914,85 @@ class _ProgrammaticDropdownOverlayState<T>
     final bool isRTL = textDirection == TextDirection.rtl;
 
     // Calculate horizontal position based on text direction
-    // Use a single left-based coordinate for both LTR and RTL.
-    // LTR:  left edge of panel aligns with rect.left
-    // RTL:  right edge of panel aligns with rect.right -> left = rect.right - width
     double leftForRect;
     if (rect != null) {
-      final double rawLeft = isRTL ? (rect.right - width) : rect.left;
-      leftForRect = rawLeft.clamp(
-        edgePadding,
-        screenSize.width - width - edgePadding,
-      );
+      // Debug output
+      debugPrint('=== Desktop Dropdown Positioning ===');
+      debugPrint('Text Direction: $textDirection (isRTL: $isRTL)');
+      debugPrint('Screen Size: $screenSize');
+      debugPrint('Anchor Rect: $rect');
+      debugPrint('Dropdown Width: $width');
+
+      // Strategy for RTL/LTR positioning:
+      // LTR: Align dropdown's left edge with anchor's left edge
+      // RTL: Align dropdown's right edge with anchor's right edge
+      //
+      // However, if the dropdown is wider than the anchor, we need to ensure
+      // it stays within the visible content area (not overlapping the drawer)
+
+      final double minLeft = edgePadding;
+      final double maxLeft = screenSize.width - width - edgePadding;
+
+      double rawLeft;
+      if (isRTL) {
+        // RTL: Align right edges (dropdown.right = anchor.right)
+        // So: dropdown.left = anchor.right - dropdown.width
+        rawLeft = rect.right - width;
+        debugPrint(
+          'RTL: Aligning right edges -> rawLeft = ${rect.right} - $width = $rawLeft',
+        );
+
+        // Smart clamping for RTL:
+        // If dropdown would go off the left edge, we have options:
+        // Option 1: Align dropdown's left with anchor's left (keeps visual connection)
+        // Option 2: Clamp to minLeft (ensures visibility but breaks alignment)
+        //
+        // We'll use Option 1 first, then fall back to Option 2 if still off-screen
+        if (rawLeft < minLeft) {
+          // Try aligning left edges instead
+          final double alternativeLeft = rect.left;
+          if (alternativeLeft >= minLeft &&
+              alternativeLeft + width <= screenSize.width - edgePadding) {
+            leftForRect = alternativeLeft;
+            debugPrint(
+              'RTL: Dropdown too wide, aligned left edges instead ($alternativeLeft)',
+            );
+          } else {
+            // Still doesn't fit, clamp to minLeft
+            leftForRect = minLeft;
+            debugPrint('RTL: Dropdown too wide, clamped to minLeft ($minLeft)');
+          }
+        } else if (rawLeft > maxLeft) {
+          leftForRect = maxLeft;
+          debugPrint('RTL: Clamped to maxLeft ($maxLeft)');
+        } else {
+          leftForRect = rawLeft;
+          debugPrint('RTL: Using rawLeft ($rawLeft)');
+        }
+      } else {
+        // LTR: Align left edges (dropdown.left = anchor.left)
+        rawLeft = rect.left;
+        debugPrint('LTR: Aligning left edges -> rawLeft = ${rect.left}');
+
+        // If dropdown is wider than anchor and would go off the right edge, shift left
+        if (rawLeft < minLeft) {
+          leftForRect = minLeft;
+          debugPrint('LTR: Clamped to minLeft ($minLeft)');
+        } else if (rawLeft + width > screenSize.width - edgePadding) {
+          leftForRect = screenSize.width - width - edgePadding;
+          debugPrint('LTR: Dropdown too wide, shifted left to $leftForRect');
+        } else {
+          leftForRect = rawLeft;
+          debugPrint('LTR: Using rawLeft ($rawLeft)');
+        }
+      }
+      debugPrint('Final Left Position: $leftForRect');
     } else {
-      leftForRect = edgePadding;
+      // No anchor rect provided, default to edge padding
+      // In RTL, position at the right edge; in LTR, at the left edge
+      leftForRect = isRTL
+          ? screenSize.width - width - edgePadding
+          : edgePadding;
     }
 
     final double effectiveMaxHeight = widget.anchorLink != null
@@ -988,6 +1063,15 @@ class _ProgrammaticDropdownOverlayState<T>
     // Recompute placement for LayerLink (runs after build)
     scheduleFlipCheck();
 
+    // Determine anchor alignment based on text direction
+    // In RTL mode, align to the right edge; in LTR mode, align to the left edge
+    final Alignment horizontalAnchor = isRTL
+        ? Alignment.topRight
+        : Alignment.topLeft;
+    final Alignment horizontalAnchorBottom = isRTL
+        ? Alignment.bottomRight
+        : Alignment.bottomLeft;
+
     return GestureDetector(
       onTap: widget.onClose,
       behavior: HitTestBehavior.translucent,
@@ -999,18 +1083,23 @@ class _ProgrammaticDropdownOverlayState<T>
                 link: widget.anchorLink!,
                 showWhenUnlinked: false,
                 targetAnchor: placeAboveFollower
-                    ? Alignment.topLeft
-                    : Alignment.bottomLeft,
+                    ? horizontalAnchor
+                    : horizontalAnchorBottom,
                 followerAnchor: placeAboveFollower
-                    ? Alignment.bottomLeft
-                    : Alignment.topLeft,
+                    ? horizontalAnchorBottom
+                    : horizontalAnchor,
                 offset: Offset(
                   dxFollower,
                   placeAboveFollower
                       ? -widget.verticalOffset
                       : widget.verticalOffset,
                 ),
-                child: GestureDetector(onTap: () {}, child: panel),
+                child: Align(
+                  alignment: placeAboveFollower
+                      ? horizontalAnchorBottom
+                      : horizontalAnchor,
+                  child: GestureDetector(onTap: () {}, child: panel),
+                ),
               ),
             )
           else

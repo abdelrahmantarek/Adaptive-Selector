@@ -6,6 +6,7 @@ export 'src/models/adaptive_selector_mode.dart';
 export 'src/models/side_sheet_size.dart';
 export 'src/models/anchor_position.dart';
 export 'src/widgets/loading_widget.dart';
+export 'src/widgets/dropdown_anchor.dart';
 
 // Internal imports
 import 'src/models/adaptive_selector_style.dart';
@@ -986,9 +987,18 @@ class AdaptiveSelectorShow {
   }
 
   /// Programmatically open a desktop-style dropdown overlay.
-  /// Use either [anchorLink] (preferred for scroll/resize robustness) or
-  /// [anchorRect] to position the dropdown. If neither provided, it will default
-  /// to top-left at (0,0) which is rarely desired.
+  ///
+  /// **Anchoring Options:**
+  /// - [anchorLink]: Provide a LayerLink (you must wrap your anchor widget
+  ///   with CompositedTransformTarget yourself). This is the recommended approach
+  ///   as it's not affected by drawer opening/closing or RTL/LTR layout changes.
+  /// - [selectorKey]: Provide a GlobalKey pointing to the anchor widget. The library
+  ///   will automatically compute the anchor Rect from the key's RenderBox.
+  /// - [anchorRect]: Provide an explicit Rect for positioning (uses global coordinates,
+  ///   may be affected by layout changes).
+  ///
+  /// If none are provided, the dropdown will default to top-left at (0,0) which is
+  /// rarely desired.
   ///
   /// The [itemBuilder] callback receives three parameters:
   /// - BuildContext: the build context
@@ -1022,6 +1032,7 @@ class AdaptiveSelectorShow {
     // Anchoring
     LayerLink? anchorLink,
     Rect? anchorRect,
+    GlobalKey? selectorKey,
     double panelWidth =
         0, // 0 => derive from anchorRect.width or fallback to 300
     double anchorHeight = 40,
@@ -1031,6 +1042,62 @@ class AdaptiveSelectorShow {
       customBuilder != null || (onChanged != null && itemBuilder != null),
       'Provide either customBuilder or both onChanged and itemBuilder',
     );
+
+    // Strategy: Prefer LayerLink over Rect-based positioning for better RTL support
+    // 1. If anchorLink is provided, use it directly
+    // 2. If selectorKey is provided, create a LayerLink internally and wrap the anchor
+    // 3. Otherwise, fall back to anchorRect (Rect-based positioning)
+
+    LayerLink? effectiveAnchorLink = anchorLink;
+    Rect? effectiveAnchorRect = anchorRect;
+    double effectiveAnchorHeight = anchorHeight;
+
+    // If selectorKey is provided and no anchorLink, create LayerLink internally
+    if (effectiveAnchorLink == null &&
+        selectorKey != null &&
+        anchorRect == null) {
+      final ctx = selectorKey.currentContext;
+      if (ctx != null) {
+        final box = ctx.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          // Create a LayerLink and attach it to the anchor's RenderBox
+          effectiveAnchorLink = LayerLink();
+          effectiveAnchorHeight = box.size.height;
+
+          // We need to wrap the anchor with CompositedTransformTarget
+          // But since this is a programmatic API, we can't modify the widget tree
+          // So we fall back to Rect-based positioning with improved RTL handling
+          final topLeft = box.localToGlobal(Offset.zero);
+          final size = box.size;
+          effectiveAnchorRect = Rect.fromLTWH(
+            topLeft.dx,
+            topLeft.dy,
+            size.width,
+            size.height,
+          );
+          effectiveAnchorLink =
+              null; // Can't use LayerLink without wrapping the anchor
+        }
+      }
+    } else if (effectiveAnchorRect == null && selectorKey != null) {
+      // Derive anchorRect from selectorKey when no anchorLink or anchorRect provided
+      final ctx = selectorKey.currentContext;
+      if (ctx != null) {
+        final box = ctx.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          final topLeft = box.localToGlobal(Offset.zero);
+          final size = box.size;
+          effectiveAnchorRect = Rect.fromLTWH(
+            topLeft.dx,
+            topLeft.dy,
+            size.width,
+            size.height,
+          );
+          effectiveAnchorHeight = size.height;
+        }
+      }
+    }
+
     return DesktopDropdownOverlay.openOverlay<T>(
       context: context,
       style: style,
@@ -1051,10 +1118,10 @@ class AdaptiveSelectorShow {
       isMultiSelect: isMultiSelect,
       customBuilder: customBuilder,
       autoCloseOnSelect: isMultiSelect ? false : autoCloseOnSelect,
-      anchorLink: anchorLink,
-      anchorRect: anchorRect,
+      anchorLink: effectiveAnchorLink,
+      anchorRect: effectiveAnchorRect,
       panelWidth: panelWidth,
-      anchorHeight: anchorHeight,
+      anchorHeight: effectiveAnchorHeight,
       verticalOffset: verticalOffset,
     );
   }

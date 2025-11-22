@@ -8,19 +8,51 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  static final ValueNotifier<bool> isRTL = ValueNotifier<bool>(false);
+
+  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Adaptive Selector Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isRTL,
+      builder: (context, rtl, _) {
+        return MaterialApp(
+          title: 'Adaptive Selector Demo',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          locale: rtl ? const Locale('ar', 'EG') : const Locale('en', 'US'),
+          builder: (context, child) {
+            return Directionality(
+              textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
+              child: Row(
+                children: [
+                  const PublicDrawer(),
+                  Expanded(child: child!),
+                ],
+              ),
+            );
+          },
+          home: const MyHomePage(),
+        );
+      },
     );
+  }
+}
+
+class PublicDrawer extends StatelessWidget {
+  const PublicDrawer({super.key});
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(width: 300);
   }
 }
 
@@ -76,7 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey _dropdownActionsKey = GlobalKey();
   String? selectedAction;
 
-  // Programmatic show.*: dropdownOrSheet examples (Rect anchoring)
+  // Programmatic show.*: dropdownOrSheet examples
+  late LayerLink _dropdownOrSheetLinkSimple;
   final GlobalKey _dropdownOrSheetRectKeySimple = GlobalKey();
   final GlobalKey _dropdownOrSheetRectKeyCustom = GlobalKey();
   String? selectedDropdownOrSheetSimple;
@@ -105,6 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
     _dropdownAnchorLink = LayerLink();
     _dropdownEnhancedLink = LayerLink();
     _dropdownMultiSelectLink = LayerLink();
+    _dropdownOrSheetLinkSimple = LayerLink();
   }
 
   final List<String> countries = [
@@ -160,6 +194,36 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: const Text('Adaptive Selector Demo'),
+        actions: [
+          // RTL/LTR Toggle Button
+          ValueListenableBuilder<bool>(
+            valueListenable: _MyAppState.isRTL,
+            builder: (context, rtl, _) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  children: [
+                    Text(
+                      rtl ? 'RTL' : 'LTR',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Switch(
+                      value: rtl,
+                      onChanged: (value) {
+                        _MyAppState.isRTL.value = value;
+                      },
+                      activeThumbColor: Colors.green,
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -1297,24 +1361,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         ElevatedButton(
                           key: _dropdownRectKey,
                           onPressed: () async {
-                            final box =
-                                _dropdownRectKey.currentContext!
-                                        .findRenderObject()
-                                    as RenderBox;
-                            final topLeft = box.localToGlobal(Offset.zero);
-                            final size = box.size;
-                            final rect = Rect.fromLTWH(
-                              topLeft.dx,
-                              topLeft.dy,
-                              size.width,
-                              size.height,
-                            );
-
                             await AdaptiveSelector.show.dropdown<String>(
                               context: context,
-                              anchorRect: rect,
+                              selectorKey: _dropdownRectKey,
                               panelWidth: 260,
-                              anchorHeight: size.height,
                               style: const AdaptiveSelectorStyle(),
                               onChanged: (v) =>
                                   setState(() => selectedDropdownViaRect = v),
@@ -1628,24 +1678,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       key: _dropdownActionsKey,
                       icon: const Icon(Icons.more_vert, size: 18),
                       onPressed: () async {
-                        final box =
-                            _dropdownActionsKey.currentContext!
-                                    .findRenderObject()
-                                as RenderBox;
-                        final topLeft = box.localToGlobal(Offset.zero);
-                        final size = box.size;
-                        final rect = Rect.fromLTWH(
-                          topLeft.dx,
-                          topLeft.dy,
-                          size.width,
-                          size.height,
-                        );
-
                         await AdaptiveSelector.show.dropdown<String>(
                           context: context,
-                          anchorRect: rect,
+                          selectorKey: _dropdownActionsKey,
                           panelWidth: 260,
-                          anchorHeight: size.height,
                           verticalOffset: 8,
                           onChanged: (v) => setState(() => selectedAction = v),
                           customBuilder: (ctx, select, close) {
@@ -1801,62 +1837,54 @@ class _MyHomePageState extends State<MyHomePage> {
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        ElevatedButton(
-                          key: _dropdownOrSheetRectKeySimple,
-                          onPressed: () async {
-                            final box =
-                                _dropdownOrSheetRectKeySimple.currentContext!
-                                        .findRenderObject()
-                                    as RenderBox;
-                            final topLeft = box.localToGlobal(Offset.zero);
-                            final size = box.size;
-                            final rect = Rect.fromLTWH(
-                              topLeft.dx,
-                              topLeft.dy,
-                              size.width,
-                              size.height,
-                            );
-
-                            await AdaptiveSelector.show.dropdownOrSheet<String>(
-                              context: context,
-                              breakpoint: 600,
-                              options: fruits.take(8).toList(),
-                              selectedValue: selectedDropdownOrSheetSimple,
-                              onChanged: (v) => setState(
-                                () => selectedDropdownOrSheetSimple = v,
-                              ),
-                              itemBuilder: (ctx, item, isSelected) =>
-                                  Text(item),
-                              enableSearch: true,
-                              hint: 'Pick a fruit... ',
-                              headerWidget: const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Select a fruit',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                        CompositedTransformTarget(
+                          link: _dropdownOrSheetLinkSimple,
+                          child: ElevatedButton(
+                            key: _dropdownOrSheetRectKeySimple,
+                            onPressed: () async {
+                              await AdaptiveSelector.show.dropdownOrSheet<
+                                String
+                              >(
+                                context: context,
+                                breakpoint: 600,
+                                options: fruits.take(8).toList(),
+                                selectedValue: selectedDropdownOrSheetSimple,
+                                onChanged: (v) => setState(
+                                  () => selectedDropdownOrSheetSimple = v,
+                                ),
+                                itemBuilder: (ctx, item, isSelected) =>
+                                    Text(item),
+                                enableSearch: true,
+                                anchorLink: _dropdownOrSheetLinkSimple,
+                                hint: 'Pick a fruit... ',
+                                headerWidget: const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Select a fruit',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              footerWidget: const Padding(
-                                padding: EdgeInsets.all(8.0),
-                                child: Text(
-                                  'Tap outside or press Esc to close',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey,
+                                footerWidget: const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Tap outside or press Esc to close',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              // Anchors are used only in dropdown mode and ignored for bottom sheet
-                              anchorRect: rect,
-                              panelWidth: 260,
-                              anchorHeight: size.height,
-                              verticalOffset: 6,
-                            );
-                          },
-                          child: const Text('Open dropdownOrSheet (Simple)'),
+                                // Anchors are used only in dropdown mode and ignored for bottom sheet
+                                selectorKey: _dropdownOrSheetRectKeySimple,
+                                panelWidth: 260,
+                                verticalOffset: 6,
+                              );
+                            },
+                            child: const Text('Open dropdownOrSheet (Simple)'),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         const Expanded(
@@ -1878,19 +1906,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     ElevatedButton(
                       key: _dropdownOrSheetRectKeyCustom,
                       onPressed: () async {
-                        final box =
-                            _dropdownOrSheetRectKeyCustom.currentContext!
-                                    .findRenderObject()
-                                as RenderBox;
-                        final topLeft = box.localToGlobal(Offset.zero);
-                        final size = box.size;
-                        final rect = Rect.fromLTWH(
-                          topLeft.dx,
-                          topLeft.dy,
-                          size.width,
-                          size.height,
-                        );
-
                         await AdaptiveSelector.show.dropdownOrSheet<String>(
                           context: context,
                           breakpoint: 600,
@@ -1951,9 +1966,8 @@ class _MyHomePageState extends State<MyHomePage> {
                             );
                           },
                           // Anchors are used only in dropdown mode and ignored for bottom sheet
-                          anchorRect: rect,
+                          selectorKey: _dropdownOrSheetRectKeyCustom,
                           panelWidth: 320,
-                          anchorHeight: size.height,
                           verticalOffset: 6,
                         );
                       },
@@ -1968,8 +1982,149 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
+            const SizedBox(height: 32),
+
+            // RTL/LTR Positioning Demo Section
+            _buildSectionTitle('17. RTL/LTR Positioning Demo'),
+            const SizedBox(height: 8),
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Toggle RTL/LTR using the switch in the AppBar to see how dropdowns automatically adjust their positioning.',
+                      style: TextStyle(color: Colors.grey, fontSize: 14),
+                    ),
+                    const SizedBox(height: 16),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _MyAppState.isRTL,
+                      builder: (context, rtl, _) {
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: rtl
+                                ? Colors.green.shade50
+                                : Colors.blue.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: rtl ? Colors.green : Colors.blue,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                rtl
+                                    ? Icons.format_textdirection_r_to_l
+                                    : Icons.format_textdirection_l_to_r,
+                                color: rtl ? Colors.green : Colors.blue,
+                                size: 32,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Current Direction: ${rtl ? "RTL (Right-to-Left)" : "LTR (Left-to-Right)"}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: rtl
+                                            ? Colors.green.shade900
+                                            : Colors.blue.shade900,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      rtl
+                                          ? 'Dropdowns align their RIGHT edge with anchor\'s RIGHT edge'
+                                          : 'Dropdowns align their LEFT edge with anchor\'s LEFT edge',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: rtl
+                                            ? Colors.green.shade700
+                                            : Colors.blue.shade700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Try the examples above with RTL enabled to see the positioning changes!',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.deepPurple,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildRTLInfoChip(
+                          '✓ LayerLink positioning',
+                          'Automatically follows anchor in RTL/LTR',
+                          Colors.green,
+                        ),
+                        _buildRTLInfoChip(
+                          '✓ Rect-based positioning',
+                          'Calculates correct alignment for RTL/LTR',
+                          Colors.blue,
+                        ),
+                        _buildRTLInfoChip(
+                          '✓ GlobalKey positioning',
+                          'Computes Rect and applies RTL logic',
+                          Colors.orange,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRTLInfoChip(String title, String subtitle, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.8)),
+          ),
+        ],
       ),
     );
   }
