@@ -2339,15 +2339,15 @@ void main() {
       );
       expect(overlayFinder, findsWidgets);
 
-      // Get panel's left position
-      final panelLeft = tester.getTopLeft(overlayFinder.last).dx;
+      // Get panel's right position
+      final panelRight = tester.getTopRight(overlayFinder.last).dx;
 
-      // In LTR, panel's left should align with anchor's left (within tolerance)
+      // In LTR, panel's right should align with anchor's right (within tolerance)
       expect(
-        (panelLeft - rect.left).abs(),
+        (panelRight - rect.right).abs(),
         lessThan(10.0),
         reason:
-            'In LTR mode, dropdown panel should align with anchor left edge',
+            'In LTR mode, dropdown panel should align with anchor right edge',
       );
     });
 
@@ -2407,15 +2407,15 @@ void main() {
       );
       expect(overlayFinder, findsWidgets);
 
-      // Get panel's right position
-      final panelRight = tester.getTopRight(overlayFinder.last).dx;
+      // Get panel's left position
+      final panelLeft = tester.getTopLeft(overlayFinder.last).dx;
 
-      // In RTL, panel's right should align with anchor's right (within tolerance)
+      // In RTL, panel's left should align with anchor's left (within tolerance)
       expect(
-        (panelRight - rect.right).abs(),
+        (panelLeft - rect.left).abs(),
         lessThan(10.0),
         reason:
-            'In RTL mode, dropdown panel should align with anchor right edge',
+            'In RTL mode, dropdown panel should align with anchor left edge',
       );
     });
   });
