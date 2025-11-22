@@ -2282,5 +2282,141 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('SHEET_CUSTOM'), findsNothing);
     });
+
+    testWidgets('aligns dropdown correctly in LTR mode', (tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(size: Size(800, 600)),
+            child: MaterialApp(
+              home: Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: 150,
+                    height: 40,
+                    child: ElevatedButton(
+                      key: key,
+                      onPressed: () {},
+                      child: const Text('ANCHOR'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Compute anchor rect
+      final box = key.currentContext!.findRenderObject() as RenderBox;
+      final topLeft = box.localToGlobal(Offset.zero);
+      final size = box.size;
+      final rect = Rect.fromLTWH(
+        topLeft.dx,
+        topLeft.dy,
+        size.width,
+        size.height,
+      );
+
+      await AdaptiveSelector.show.dropdownOrSheet<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorRect: rect,
+        options: const ['A', 'B', 'C'],
+        selectedValue: null,
+        onChanged: (_) {},
+        itemBuilder: (c, it, isSelected) => Text(it),
+        panelWidth: 200,
+      );
+
+      await tester.pumpAndSettle();
+
+      // Find the dropdown panel
+      final overlayFinder = find.byWidgetPredicate(
+        (w) => w is Material && w.elevation == 4,
+      );
+      expect(overlayFinder, findsWidgets);
+
+      // Get panel's left position
+      final panelLeft = tester.getTopLeft(overlayFinder.last).dx;
+
+      // In LTR, panel's left should align with anchor's left (within tolerance)
+      expect(
+        (panelLeft - rect.left).abs(),
+        lessThan(10.0),
+        reason:
+            'In LTR mode, dropdown panel should align with anchor left edge',
+      );
+    });
+
+    testWidgets('aligns dropdown correctly in RTL mode', (tester) async {
+      final key = GlobalKey();
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.rtl,
+          child: MediaQuery(
+            data: const MediaQueryData(size: Size(800, 600)),
+            child: MaterialApp(
+              home: Scaffold(
+                body: Center(
+                  child: SizedBox(
+                    width: 150,
+                    height: 40,
+                    child: ElevatedButton(
+                      key: key,
+                      onPressed: () {},
+                      child: const Text('مرساة'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Compute anchor rect
+      final box = key.currentContext!.findRenderObject() as RenderBox;
+      final topLeft = box.localToGlobal(Offset.zero);
+      final size = box.size;
+      final rect = Rect.fromLTWH(
+        topLeft.dx,
+        topLeft.dy,
+        size.width,
+        size.height,
+      );
+
+      await AdaptiveSelector.show.dropdownOrSheet<String>(
+        context: tester.element(find.byType(Scaffold)),
+        anchorRect: rect,
+        options: const ['أ', 'ب', 'ج'],
+        selectedValue: null,
+        onChanged: (_) {},
+        itemBuilder: (c, it, isSelected) => Text(it),
+        panelWidth: 200,
+      );
+
+      await tester.pumpAndSettle();
+
+      // Find the dropdown panel
+      final overlayFinder = find.byWidgetPredicate(
+        (w) => w is Material && w.elevation == 4,
+      );
+      expect(overlayFinder, findsWidgets);
+
+      // Get panel's right position
+      final panelRight = tester.getTopRight(overlayFinder.last).dx;
+
+      // In RTL, panel's right should align with anchor's right (within tolerance)
+      expect(
+        (panelRight - rect.right).abs(),
+        lessThan(10.0),
+        reason:
+            'In RTL mode, dropdown panel should align with anchor right edge',
+      );
+    });
   });
 }

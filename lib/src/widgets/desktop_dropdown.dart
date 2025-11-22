@@ -906,19 +906,18 @@ class _ProgrammaticDropdownOverlayState<T>
     final bool isRTL = textDirection == TextDirection.rtl;
 
     // Calculate horizontal position based on text direction
-    final double leftForRect = rect != null
-        ? (isRTL
-              // In RTL, align to the right edge of the anchor
-              ? (screenSize.width - rect.right).clamp(
-                  edgePadding,
-                  screenSize.width - width - edgePadding,
-                )
-              // In LTR, align to the left edge of the anchor
-              : rect.left.clamp(
-                  edgePadding,
-                  screenSize.width - width - edgePadding,
-                ))
-        : 0.0;
+    // For LTR: align panel's left edge with anchor's left edge
+    // For RTL: align panel's right edge with anchor's right edge
+    final double? leftForRect = rect != null && !isRTL
+        ? rect.left.clamp(edgePadding, screenSize.width - width - edgePadding)
+        : null;
+
+    final double? rightForRect = rect != null && isRTL
+        ? (screenSize.width - rect.right).clamp(
+            edgePadding,
+            screenSize.width - width - edgePadding,
+          )
+        : null;
 
     final double effectiveMaxHeight = widget.anchorLink != null
         ? linkMaxHeight
@@ -1016,13 +1015,16 @@ class _ProgrammaticDropdownOverlayState<T>
           else
             Positioned(
               left: leftForRect,
+              right: rightForRect,
               top: (rect != null && placeBelowRect)
                   ? (rect.bottom + widget.verticalOffset)
                   : null,
               bottom: (rect != null && !placeBelowRect)
                   ? ((screenSize.height - rect.top) + widget.verticalOffset)
                   : null,
-              width: width,
+              width: (leftForRect != null || rightForRect != null)
+                  ? width
+                  : null,
               child: GestureDetector(onTap: () {}, child: panel),
             ),
         ],
