@@ -903,16 +903,16 @@ class _ProgrammaticDropdownOverlayState<T>
 
     // Get text direction to handle RTL/LTR correctly
     final textDirection = Directionality.of(context);
-    final bool isRTL = textDirection == TextDirection.rtl;
+    final bool isLTR = textDirection == TextDirection.ltr;
 
     // Calculate horizontal position based on text direction
     // For LTR: align panel's left edge with anchor's left edge
     // For RTL: align panel's right edge with anchor's right edge
-    final double? leftForRect = rect != null && !isRTL
+    final double? leftForRect = rect != null && !isLTR
         ? rect.left.clamp(edgePadding, screenSize.width - width - edgePadding)
         : null;
 
-    final double? rightForRect = rect != null && isRTL
+    final double? rightForRect = rect != null && isLTR
         ? (screenSize.width - rect.right).clamp(
             edgePadding,
             screenSize.width - width - edgePadding,
