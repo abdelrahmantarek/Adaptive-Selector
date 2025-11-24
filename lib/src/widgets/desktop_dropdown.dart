@@ -516,6 +516,8 @@ class DesktopDropdownOverlay {
     Rect? anchorRect,
     double panelWidth =
         0, // 0 => derive from anchorRect.width or fallback to 300
+    double panelHeight =
+        0, // 0 => auto (maxHeight constraint based on available space)
     double anchorHeight = 40,
     double verticalOffset = 5,
   }) {
@@ -552,6 +554,7 @@ class DesktopDropdownOverlay {
         anchorLink: anchorLink,
         anchorRect: anchorRect,
         panelWidth: panelWidth,
+        panelHeight: panelHeight,
         anchorHeight: anchorHeight,
         verticalOffset: verticalOffset,
         onClose: close,
@@ -587,6 +590,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
   final LayerLink? anchorLink;
   final Rect? anchorRect;
   final double panelWidth;
+  final double panelHeight;
   final double anchorHeight;
   final double verticalOffset;
   final VoidCallback onClose;
@@ -613,6 +617,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
     this.anchorLink,
     this.anchorRect,
     this.panelWidth = 0,
+    this.panelHeight = 0,
     this.anchorHeight = 40,
     this.verticalOffset = 5,
     required this.onClose,
@@ -909,6 +914,11 @@ class _ProgrammaticDropdownOverlayState<T>
       maxHeightRect = safeSpace.clamp(50.0, 300.0).toDouble();
     }
 
+    // Apply panelHeight if specified, otherwise use calculated maxHeightRect
+    if (widget.panelHeight > 0) {
+      maxHeightRect = widget.panelHeight;
+    }
+
     // Get text direction to handle RTL/LTR correctly
     final textDirection = Directionality.of(context);
     final bool isRTL = textDirection == TextDirection.rtl;
@@ -995,8 +1005,14 @@ class _ProgrammaticDropdownOverlayState<T>
           : edgePadding;
     }
 
+    // Apply panelHeight to linkMaxHeight if specified
+    double effectiveLinkMaxHeight = linkMaxHeight;
+    if (widget.panelHeight > 0) {
+      effectiveLinkMaxHeight = widget.panelHeight;
+    }
+
     final double effectiveMaxHeight = widget.anchorLink != null
-        ? linkMaxHeight
+        ? effectiveLinkMaxHeight
         : maxHeightRect;
 
     final panel = FadeTransition(

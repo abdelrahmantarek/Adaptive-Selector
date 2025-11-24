@@ -1035,6 +1035,8 @@ class AdaptiveSelectorShow {
     GlobalKey? selectorKey,
     double panelWidth =
         0, // 0 => derive from anchorRect.width or fallback to 300
+    double panelHeight =
+        0, // 0 => auto (maxHeight constraint based on available space)
     double anchorHeight = 40,
     double verticalOffset = 5,
   }) {
@@ -1121,6 +1123,7 @@ class AdaptiveSelectorShow {
       anchorLink: effectiveAnchorLink,
       anchorRect: effectiveAnchorRect,
       panelWidth: panelWidth,
+      panelHeight: panelHeight,
       anchorHeight: effectiveAnchorHeight,
       verticalOffset: verticalOffset,
     );
@@ -1169,6 +1172,7 @@ class AdaptiveSelectorShow {
     Rect? anchorRect,
     GlobalKey? selectorKey,
     double panelWidth = 0,
+    double panelHeight = 0,
     double anchorHeight = 40,
     double verticalOffset = 5,
   }) {
@@ -1240,6 +1244,7 @@ class AdaptiveSelectorShow {
         anchorLink: anchorLink,
         anchorRect: effectiveAnchorRect,
         panelWidth: panelWidth,
+        panelHeight: panelHeight,
         anchorHeight: anchorHeight,
         verticalOffset: verticalOffset,
       );

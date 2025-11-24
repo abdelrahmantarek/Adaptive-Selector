@@ -41,17 +41,18 @@ class DropdownAnchor<T> extends StatefulWidget {
       List<T> selectedValues,
       ValueChanged<List<T>>? onSelectionChanged,
       bool isMultiSelect,
-      Widget Function(BuildContext, void Function(T), VoidCallback)? customBuilder,
+      Widget Function(BuildContext, void Function(T), VoidCallback)?
+      customBuilder,
       bool autoCloseOnSelect,
       double panelWidth,
+      double panelHeight,
       double verticalOffset,
-    }) openDropdown,
-  ) builder;
+    })
+    openDropdown,
+  )
+  builder;
 
-  const DropdownAnchor({
-    super.key,
-    required this.builder,
-  });
+  const DropdownAnchor({super.key, required this.builder});
 
   @override
   State<DropdownAnchor<T>> createState() => _DropdownAnchorState<T>();
@@ -75,9 +76,11 @@ class _DropdownAnchorState<T> extends State<DropdownAnchor<T>> {
     List<T> selectedValues = const [],
     ValueChanged<List<T>>? onSelectionChanged,
     bool isMultiSelect = false,
-    Widget Function(BuildContext, void Function(T), VoidCallback)? customBuilder,
+    Widget Function(BuildContext, void Function(T), VoidCallback)?
+    customBuilder,
     bool autoCloseOnSelect = true,
     double panelWidth = 0,
+    double panelHeight = 0,
     double verticalOffset = 5,
   }) {
     return DesktopDropdownOverlay.openOverlay<T>(
@@ -101,6 +104,7 @@ class _DropdownAnchorState<T> extends State<DropdownAnchor<T>> {
       autoCloseOnSelect: autoCloseOnSelect,
       anchorLink: _layerLink,
       panelWidth: panelWidth,
+      panelHeight: panelHeight,
       verticalOffset: verticalOffset,
     );
   }
@@ -113,4 +117,3 @@ class _DropdownAnchorState<T> extends State<DropdownAnchor<T>> {
     );
   }
 }
-

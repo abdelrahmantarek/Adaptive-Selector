@@ -1880,6 +1880,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 // Anchors are used only in dropdown mode and ignored for bottom sheet
                                 selectorKey: _dropdownOrSheetRectKeySimple,
                                 panelWidth: 260,
+                                panelHeight: 200, // Fixed height for dropdown
                                 verticalOffset: 6,
                               );
                             },
