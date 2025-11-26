@@ -494,7 +494,7 @@ class DesktopDropdownOverlay {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T, bool)? itemBuilder,
+    Widget Function(BuildContext, T, bool,ProgrammaticDropdownOverlayState)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -571,7 +571,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value)? onChanged;
-  final Widget Function(BuildContext, T, bool)? itemBuilder;
+  final Widget Function(BuildContext, T, bool,ProgrammaticDropdownOverlayState)? itemBuilder;
   final bool enableSearch;
   final String? hint;
   final Future<List<T>> Function(String query)? onSearch;
@@ -625,10 +625,10 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
 
   @override
   State<_ProgrammaticDropdownOverlay<T>> createState() =>
-      _ProgrammaticDropdownOverlayState<T>();
+      ProgrammaticDropdownOverlayState<T>();
 }
 
-class _ProgrammaticDropdownOverlayState<T>
+class ProgrammaticDropdownOverlayState<T>
     extends State<_ProgrammaticDropdownOverlay<T>>
     with SingleTickerProviderStateMixin {
   late List<T> filteredOptions;
@@ -866,7 +866,7 @@ class _ProgrammaticDropdownOverlayState<T>
                 children: [
                   Expanded(
                     child: widget.itemBuilder != null
-                        ? widget.itemBuilder!(context, item, isSelected)
+                        ? widget.itemBuilder!(context, item, isSelected,this)
                         : Text('$item'),
                   ),
                   if (widget.isMultiSelect) ...[
