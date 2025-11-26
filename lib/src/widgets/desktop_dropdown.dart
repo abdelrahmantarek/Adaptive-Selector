@@ -73,6 +73,8 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
+  FocusNode focusNode = FocusNode();
+
   @override
   void initState() {
     super.initState();
@@ -100,6 +102,14 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
             curve: Curves.easeOutCubic,
           ),
         );
+
+    focusNode.addListener(() {
+      if (focusNode.hasFocus) {
+        print('FocusNode is now focused');
+      } else {
+        print('FocusNode lost focus');
+      }
+    });
   }
 
   @override
@@ -221,7 +231,6 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                               children: [
                                 if (widget.dropdownHeaderWidget != null)
                                   widget.dropdownHeaderWidget!,
-                                if (widget.enableSearch) buildSearchField(),
                                 Flexible(child: buildOptionsList()),
                                 if (widget.dropdownFooterWidget != null)
                                   widget.dropdownFooterWidget!,
@@ -241,32 +250,6 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
     );
   }
 
-  Widget buildSearchField() {
-    final base =
-        widget.style.searchFieldDecoration ??
-        widget.style.searchDecoration ??
-        InputDecoration(
-          hintText: 'Search...',
-          prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        );
-
-    final decoration = base.copyWith(
-      hintText: base.hintText ?? 'Search...',
-      prefixIcon:
-          base.prefixIcon ??
-          (widget.style.searchIcon ?? const Icon(Icons.search)),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: TextField(
-        controller: _searchController,
-        decoration: decoration,
-        onChanged: filterOptions,
-      ),
-    );
-  }
 
   Future<void> filterOptions(String query) async {
     if (widget.onSearch != null) {
@@ -402,88 +385,138 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
 
   @override
   Widget build(BuildContext context) {
+
     return CompositedTransformTarget(
       link: _layerLink,
-      child: InkWell(
-        onTap: widget.isLoading ? null : _toggleDropdown,
-        child: Container(
-          padding:
-              widget.style.padding ??
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
-            color: widget.style.backgroundColor ?? Colors.white,
-            borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
-            border: Border.all(
-              color: widget.style.borderColor ?? Colors.grey.shade300,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: widget.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : widget.isMultiSelect
-                    ? (widget.selectedValuesBuilder != null
-                          ? DefaultTextStyle(
-                              style:
-                                  widget.style.textStyle ??
-                                  TextStyle(
-                                    color:
-                                        widget.style.textColor ??
-                                        Colors.black87,
-                                    fontSize: 16,
-                                  ),
-                              child: widget.selectedValuesBuilder!(
-                                context,
-                                _localSelectedValues,
-                              ),
-                            )
-                          : Text(
-                              _localSelectedValues.isNotEmpty
-                                  ? '${_localSelectedValues.length} selected'
-                                  : (widget.hint ?? 'Select options'),
-                              style: TextStyle(
-                                color: _localSelectedValues.isNotEmpty
-                                    ? (widget.style.textColor ?? Colors.black87)
-                                    : Colors.grey.shade600,
-                                fontSize: 16,
-                              ),
-                            ))
-                    : widget.selectedValue != null
-                    ? DefaultTextStyle(
-                        style:
-                            widget.style.textStyle ??
-                            TextStyle(
-                              color: widget.style.textColor ?? Colors.black87,
-                              fontSize: 16,
-                            ),
-                        child: widget.itemBuilder(
-                          context,
-                          widget.selectedValue as T,
-                          true,
-                        ),
-                      )
-                    : Text(
-                        widget.hint ?? 'Select an option',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 16,
-                        ),
-                      ),
-              ),
-              widget.style.dropdownIcon ??
-                  Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
-            ],
-          ),
+      child: SizedBox(
+        child: SizedBox(
+          child: widget.enableSearch ? buildSearchField() : dropDownButton(),
         ),
       ),
     );
   }
+
+  Widget buildSearchField() {
+    final base =
+        widget.style.searchFieldDecoration ??
+            widget.style.searchDecoration ??
+            InputDecoration(
+              hintText: 'Search...',
+              prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+              border: InputBorder.none,
+            );
+
+    final decoration = base.copyWith(
+      hintText: base.hintText ?? 'Search...',
+      fillColor: widget.style.backgroundColor ?? Colors.white,
+      prefixIcon: base.prefixIcon ?? (widget.style.searchIcon ?? const Icon(Icons.search)),
+      // filled: true,
+      border: InputBorder.none
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: widget.style.backgroundColor ?? Colors.white,
+        borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
+        border: Border.all(
+          color: widget.style.borderColor ?? Colors.grey.shade300,
+        ),
+      ),
+      child: TextField(
+        controller: _searchController,
+        decoration: decoration,
+        onChanged: filterOptions,
+        onTap: (){
+          widget.isLoading ? null : _toggleDropdown();
+        },
+      ),
+    );
+  }
+
+
+  Widget dropDownButton(){
+    return InkWell(
+      onTap: widget.isLoading ? null : _toggleDropdown,
+      child: Container(
+        padding:
+        widget.style.padding ??
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: widget.style.backgroundColor ?? Colors.white,
+          borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
+          border: Border.all(
+            color: widget.style.borderColor ?? Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+
+            Expanded(
+              child: widget.isLoading
+                  ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+                  : widget.isMultiSelect
+                  ? (widget.selectedValuesBuilder != null
+                  ? DefaultTextStyle(
+                style:
+                widget.style.textStyle ??
+                    TextStyle(
+                      color:
+                      widget.style.textColor ??
+                          Colors.black87,
+                      fontSize: 16,
+                    ),
+                child: widget.selectedValuesBuilder!(
+                  context,
+                  _localSelectedValues,
+                ),
+              )
+                  : Text(
+                _localSelectedValues.isNotEmpty
+                    ? '${_localSelectedValues.length} selected'
+                    : (widget.hint ?? 'Select options'),
+                style: TextStyle(
+                  color: _localSelectedValues.isNotEmpty
+                      ? (widget.style.textColor ?? Colors.black87)
+                      : Colors.grey.shade600,
+                  fontSize: 16,
+                ),
+              ))
+                  : widget.selectedValue != null
+                  ? DefaultTextStyle(
+                style:
+                widget.style.textStyle ??
+                    TextStyle(
+                      color: widget.style.textColor ?? Colors.black87,
+                      fontSize: 16,
+                    ),
+                child: widget.itemBuilder(
+                  context,
+                  widget.selectedValue as T,
+                  true,
+                ),
+              )
+                  : Text(
+                widget.hint ?? 'Select an option',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+
+            widget.style.dropdownIcon ??
+                Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
 
 /// Programmatic overlay API for desktop-style dropdown.
@@ -896,6 +929,7 @@ class ProgrammaticDropdownOverlayState<T>
 
   @override
   Widget build(BuildContext context) {
+
     final Size screenSize = MediaQuery.of(context).size;
     final Rect? rect = widget.anchorRect;
     final double width = widget.panelWidth > 0
@@ -1091,7 +1125,6 @@ class ProgrammaticDropdownOverlayState<T>
     final Alignment horizontalAnchorBottom = isRTL
         ? Alignment.bottomRight
         : Alignment.bottomLeft;
-
 
     return GestureDetector(
       onTap: widget.onClose,
