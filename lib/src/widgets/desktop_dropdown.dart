@@ -73,8 +73,6 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  FocusNode focusNode = FocusNode();
-
   @override
   void initState() {
     super.initState();
@@ -103,13 +101,6 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
           ),
         );
 
-    focusNode.addListener(() {
-      if (focusNode.hasFocus) {
-        print('FocusNode is now focused');
-      } else {
-        print('FocusNode lost focus');
-      }
-    });
   }
 
   @override
@@ -392,13 +383,13 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
       link: _layerLink,
       child: SizedBox(
         child: SizedBox(
-          child: widget.enableSearch ? buildSearchField() : dropDownButton(),
+          child: widget.enableSearch ? buildSearchFieldButton() : dropDownButton(),
         ),
       ),
     );
   }
 
-  Widget buildSearchField() {
+  Widget buildSearchFieldButton() {
     final base =
         widget.style.searchFieldDecoration ??
             widget.style.searchDecoration ??
@@ -438,7 +429,6 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
       ),
     );
   }
-
 
   Widget dropDownButton(){
     return InkWell(
