@@ -1140,6 +1140,9 @@ class _MyHomePageState extends State<MyHomePage> {
                       itemBuilder: (context, item, isSelected) => Text(item),
                       hint: 'Dropdown',
                       enableSearch: true,
+                      selectedValuesBuilder: (c,e){
+                        return Text("sear");
+                      },
                       dropdownHeaderWidget: const Padding(
                         padding: EdgeInsets.all(8.0),
                         child: Text(

@@ -354,8 +354,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
           children: [
             Expanded(
               child: DefaultTextStyle(
-                style:
-                    (isSelected
+                style: (isSelected
                         ? widget.style.selectedTextStyle
                         : widget.style.textStyle) ??
                     TextStyle(
@@ -381,7 +380,10 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         ),
       ),
     );
+
+
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -401,17 +403,21 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         widget.style.searchFieldDecoration ??
             widget.style.searchDecoration ??
             InputDecoration(
-              hintText: 'Search...',
+              // hintText: 'Search...',
               prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
               border: InputBorder.none,
             );
 
     final decoration = base.copyWith(
-      hintText: base.hintText ?? 'Search...',
+      // hintText: base.hintText ?? 'Search...',
       fillColor: widget.style.backgroundColor ?? Colors.white,
       prefixIcon: base.prefixIcon ?? (widget.style.searchIcon ?? const Icon(Icons.search)),
       // filled: true,
-      border: InputBorder.none
+      border: InputBorder.none,
+      hint: widget.selectedValuesBuilder == null ? Text(base.hintText ?? 'Search...') : widget.selectedValuesBuilder!(
+        context,
+        _localSelectedValues,
+      )
     );
 
     return Container(
@@ -439,8 +445,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
       onTap: widget.isLoading ? null : _toggleDropdown,
       child: Container(
         padding:
-        widget.style.padding ??
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        widget.style.padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: widget.style.backgroundColor ?? Colors.white,
           borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
