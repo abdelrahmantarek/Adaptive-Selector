@@ -394,13 +394,11 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         widget.style.searchFieldDecoration ??
             widget.style.searchDecoration ??
             InputDecoration(
-              // hintText: 'Search...',
               prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
               border: InputBorder.none,
             );
 
     final decoration = base.copyWith(
-      // hintText: base.hintText ?? 'Search...',
       fillColor: widget.style.backgroundColor ?? Colors.white,
       prefixIcon: base.prefixIcon ?? (widget.style.searchIcon ?? const Icon(Icons.search)),
       // filled: true,
