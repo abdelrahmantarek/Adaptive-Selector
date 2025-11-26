@@ -494,7 +494,7 @@ class DesktopDropdownOverlay {
     List<T> options = const [],
     T? selectedValue,
     void Function(T value)? onChanged,
-    Widget Function(BuildContext, T, bool,ProgrammaticDropdownOverlayState)? itemBuilder,
+    Widget Function(BuildContext, T, bool)? itemBuilder,
     bool enableSearch = false,
     String? hint,
     Future<List<T>> Function(String query)? onSearch,
@@ -571,7 +571,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
   final List<T> options;
   final T? selectedValue;
   final void Function(T value)? onChanged;
-  final Widget Function(BuildContext, T, bool,ProgrammaticDropdownOverlayState)? itemBuilder;
+  final Widget Function(BuildContext, T, bool)? itemBuilder;
   final bool enableSearch;
   final String? hint;
   final Future<List<T>> Function(String query)? onSearch;
@@ -832,11 +832,11 @@ class ProgrammaticDropdownOverlayState<T>
               });
               widget.onSelectionChanged?.call(List<T>.from(selectedValues));
               searchController.clear();
-              if (widget.autoCloseOnSelect) widget.onClose();
+              widget.onClose();
             } else {
               widget.onChanged?.call(item);
               searchController.clear();
-              if (widget.autoCloseOnSelect) widget.onClose();
+              widget.onClose();
             }
           },
           child: Container(
@@ -866,7 +866,7 @@ class ProgrammaticDropdownOverlayState<T>
                 children: [
                   Expanded(
                     child: widget.itemBuilder != null
-                        ? widget.itemBuilder!(context, item, isSelected,this)
+                        ? widget.itemBuilder!(context, item, isSelected)
                         : Text('$item'),
                   ),
                   if (widget.isMultiSelect) ...[
