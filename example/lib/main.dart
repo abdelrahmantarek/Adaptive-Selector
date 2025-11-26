@@ -1135,6 +1135,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           selectedFruit = value;
                         });
                       },
+                      isMultiSelect: true,
+                      autoCloseWhenSelect: true,
                       itemBuilder: (context, item, isSelected) => Text(item),
                       hint: 'Dropdown',
                       enableSearch: true,

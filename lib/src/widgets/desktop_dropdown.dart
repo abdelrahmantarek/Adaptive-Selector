@@ -339,6 +339,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
           } else {
             _localSelectedValues.add(item);
           }
+          if (widget.autoCloseWhenSelect) {
+            _removeOverlay();
+          }
           setState(() {});
           _overlayEntry?.markNeedsBuild();
           widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
@@ -811,6 +814,7 @@ class ProgrammaticDropdownOverlayState<T>
         child: Center(child: Text('No options found')),
       );
     }
+
     return ListView.builder(
       shrinkWrap: true,
       padding: EdgeInsets.zero,
@@ -832,11 +836,11 @@ class ProgrammaticDropdownOverlayState<T>
               });
               widget.onSelectionChanged?.call(List<T>.from(selectedValues));
               searchController.clear();
-              widget.onClose();
+              if (widget.autoCloseOnSelect) widget.onClose();
             } else {
               widget.onChanged?.call(item);
               searchController.clear();
-              widget.onClose();
+              if (widget.autoCloseOnSelect) widget.onClose();
             }
           },
           child: Container(
@@ -1087,6 +1091,7 @@ class ProgrammaticDropdownOverlayState<T>
     final Alignment horizontalAnchorBottom = isRTL
         ? Alignment.bottomRight
         : Alignment.bottomLeft;
+
 
     return GestureDetector(
       onTap: widget.onClose,
