@@ -387,6 +387,9 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// Can be used for headers, filters, or any custom content.
   final Widget? headerWidget;
 
+
+  final Widget? buttonBuilder;
+
   /// Optional custom widget to display at the bottom of mobile bottom sheets and side sheets.
   /// Can be used for footers, action buttons, or any custom content.
   final Widget? footerWidget;
@@ -424,6 +427,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.anchorPanelWidth = 300,
     this.headerWidget,
     this.footerWidget,
+    this.buttonBuilder,
   }) : selectedValues = const [],
        onSelectionChanged = null,
        selectedValuesBuilder = null,
@@ -464,6 +468,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.anchorPanelWidth = 300,
     this.headerWidget,
     this.footerWidget,
+    this.buttonBuilder,
   }) : mode = AdaptiveSelectorMode.automatic,
        selectedValues = const [],
        onSelectionChanged = null,
@@ -510,6 +515,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.onContextualPushPivotXChanged,
     this.headerWidget,
     this.footerWidget,
+    this.buttonBuilder,
   }) : mode = isLeft
            ? AdaptiveSelectorMode.leftSheet
            : AdaptiveSelectorMode.rightSheet,
@@ -556,6 +562,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.useSafeArea = true,
     this.headerWidget,
     this.footerWidget,
+    this.buttonBuilder,
     // Multi-select support (optional; defaults keep single-select behavior)
     this.selectedValues = const [],
     this.onSelectionChanged,
@@ -614,6 +621,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.isLoading = false,
     this.dropdownHeaderWidget,
     this.dropdownFooterWidget,
+    this.buttonBuilder,
     this.autoCloseWhenSelect = true,
     // Multi-select support (optional; defaults keep single-select behavior)
     this.selectedValues = const [],
@@ -771,6 +779,7 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       isLoading: widget.isLoading,
       dropdownHeaderWidget: widget.dropdownHeaderWidget,
       dropdownFooterWidget: widget.dropdownFooterWidget,
+      buttonBuilder: widget.buttonBuilder,
       autoCloseWhenSelect: widget.autoCloseWhenSelect,
       // Multi-select wiring
       isMultiSelect: widget.isMultiSelect,

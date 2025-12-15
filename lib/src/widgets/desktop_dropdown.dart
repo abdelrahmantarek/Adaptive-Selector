@@ -20,6 +20,7 @@ class DesktopDropdown<T> extends StatefulWidget {
   final bool isLoading;
   final Widget? dropdownHeaderWidget;
   final Widget? dropdownFooterWidget;
+  final Widget? buttonBuilder;
   // Multi-select support
   final List<T> selectedValues;
   final ValueChanged<List<T>>? onSelectionChanged;
@@ -46,6 +47,7 @@ class DesktopDropdown<T> extends StatefulWidget {
     this.isLoading = false,
     this.dropdownHeaderWidget,
     this.dropdownFooterWidget,
+    this.buttonBuilder,
     // Multi-select
     this.selectedValues = const [],
     this.onSelectionChanged,
@@ -381,12 +383,23 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
 
     return CompositedTransformTarget(
       link: _layerLink,
-      child: SizedBox(
-        child: SizedBox(
-          child: widget.enableSearch ? buildSearchFieldButton() : dropDownButton(),
-        ),
-      ),
+      child: _customButton() ?? (widget.enableSearch ? buildSearchFieldButton() : dropDownButton()),
     );
+  }
+
+  Widget? _customButton(){
+
+    if(widget.buttonBuilder != null){
+      return InkWell(
+        borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
+        onTap: (){
+          widget.isLoading ? null : _toggleDropdown();
+        },
+        child: widget.buttonBuilder,
+      );
+    }
+
+    return null;
   }
 
   Widget buildSearchFieldButton() {

@@ -33,12 +33,7 @@ class _MyAppState extends State<MyApp> {
           builder: (context, child) {
             return Directionality(
               textDirection: rtl ? TextDirection.rtl : TextDirection.ltr,
-              child: Row(
-                children: [
-                  const PublicDrawer(),
-                  Expanded(child: child!),
-                ],
-              ),
+              child: child!,
             );
           },
           home: const MyHomePage(),
@@ -1135,6 +1130,10 @@ class _MyHomePageState extends State<MyHomePage> {
                           selectedFruit = value;
                         });
                       },
+                      buttonBuilder: Container(
+                        width: double.infinity,
+                        child: Text("button"),
+                      ),
                       isMultiSelect: true,
                       autoCloseWhenSelect: true,
                       itemBuilder: (context, item, isSelected) => Text(item),

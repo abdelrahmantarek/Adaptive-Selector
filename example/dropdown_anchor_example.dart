@@ -51,11 +51,13 @@ class _DropdownAnchorExampleState extends State<DropdownAnchorExample> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
             const Text(
               'Click the button to open a dropdown with LayerLink positioning:',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16),
             ),
+
             const SizedBox(height: 20),
 
             // Example 1: Basic usage with DropdownAnchor
@@ -152,6 +154,7 @@ class _DropdownAnchorExampleState extends State<DropdownAnchorExample> {
                 );
               },
             ),
+
           ],
         ),
       ),
