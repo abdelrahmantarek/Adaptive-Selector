@@ -604,6 +604,10 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// Example: await AdaptiveSelector.show.sideSheet(...)
   static final show = AdaptiveSelectorShow._();
 
+  static bool get isShow{
+    return AnchoredPanelState.isOpen;
+  }
+
   ///   dropdownHeaderWidget: Text('Select an option'),
   /// )
   /// ```

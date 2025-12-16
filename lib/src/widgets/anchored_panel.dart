@@ -48,15 +48,15 @@ class AnchoredPanel<T> extends StatefulWidget {
   });
 
   @override
-  State<AnchoredPanel<T>> createState() => _AnchoredPanelState<T>();
+  State<AnchoredPanel<T>> createState() => AnchoredPanelState<T>();
 }
 
-class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
+class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
     with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
   List<T> _filteredOptions = [];
   OverlayEntry? _overlayEntry;
-  bool _isOpen = false;
+  static bool isOpen = false;
   bool _isSearching = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -90,7 +90,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
       });
     }
     // If the anchor link changed, close the overlay to prevent LayerLink errors
-    if (oldWidget.anchorLink != widget.anchorLink && _isOpen) {
+    if (oldWidget.anchorLink != widget.anchorLink && isOpen) {
       _removeOverlayImmediate();
     }
   }
@@ -99,7 +99,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
   void reassemble() {
     super.reassemble();
     // Close overlay on hot reload to prevent LayerLink errors
-    if (_isOpen) {
+    if (isOpen) {
       _removeOverlayImmediate();
     }
   }
@@ -107,7 +107,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
   @override
   void deactivate() {
     // Close overlay when widget is removed from tree to prevent LayerLink errors
-    if (_isOpen) {
+    if (isOpen) {
       _removeOverlayImmediate();
     }
     super.deactivate();
@@ -122,27 +122,27 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
   }
 
   void _removeOverlayImmediate() {
-    if (_isOpen) {
+    if (isOpen) {
       _overlayEntry?.remove();
       _overlayEntry = null;
-      _isOpen = false;
+      isOpen = false;
     }
   }
 
   void _removeOverlay() {
-    if (_isOpen && mounted) {
+    if (isOpen && mounted) {
       _animationController.reverse().then((_) {
         if (mounted) {
           _overlayEntry?.remove();
           _overlayEntry = null;
-          _isOpen = false;
+          isOpen = false;
         }
       });
     }
   }
 
   void _togglePanel() {
-    if (_isOpen) {
+    if (isOpen) {
       _removeOverlay();
     } else {
       _showOverlay();
@@ -152,9 +152,11 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
   void _showOverlay() {
     _overlayEntry = _createOverlayEntry();
     Overlay.of(context).insert(_overlayEntry!);
-    _isOpen = true;
+    isOpen = true;
     _animationController.forward();
   }
+
+
 
   /// Calculates the best position for the panel based on available space.
   _PositionData _calculatePosition(BuildContext context, RenderBox anchorBox) {
@@ -516,10 +518,10 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
             color: widget.style.backgroundColor ?? Colors.white,
             borderRadius: widget.style.borderRadius ?? BorderRadius.circular(8),
             border: Border.all(
-              color: _isOpen
+              color: isOpen
                   ? (widget.style.selectedItemColor ?? Colors.blue.shade300)
                   : (widget.style.borderColor ?? Colors.grey.shade300),
-              width: _isOpen ? 2 : 1,
+              width: isOpen ? 2 : 1,
             ),
           ),
           child: Row(
@@ -554,7 +556,7 @@ class _AnchoredPanelState<T> extends State<AnchoredPanel<T>>
                     ),
               const SizedBox(width: 8),
               Icon(
-                _isOpen ? Icons.expand_less : Icons.expand_more,
+                isOpen ? Icons.expand_less : Icons.expand_more,
                 size: 20,
                 color: Colors.grey.shade600,
               ),

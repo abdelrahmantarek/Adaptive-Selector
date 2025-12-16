@@ -27,6 +27,7 @@ class DesktopDropdown<T> extends StatefulWidget {
   final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
   final bool isMultiSelect;
 
+
   /// Whether the dropdown should automatically close when an item is selected.
   ///
   /// Only applies to single-select mode. In multi-select mode the dropdown
