@@ -688,6 +688,9 @@ class ProgrammaticDropdownOverlayState<T>
   double dxFollower = 0; // horizontal correction to keep panel within screen
   double linkMaxHeight = 300; // dynamic max height when using LayerLink
 
+  static bool isOpen = false;
+
+
   void scheduleFlipCheck() {
     // After each build, recompute placement for LayerLink mode to avoid overflow
     WidgetsBinding.instance.addPostFrameCallback((_) => checkFlipIfNeeded());
@@ -763,6 +766,7 @@ class ProgrammaticDropdownOverlayState<T>
   @override
   void initState() {
     super.initState();
+    isOpen = true;
     filteredOptions = widget.options;
     animationController = AnimationController(
       duration: widget.style.animationDuration,
@@ -793,6 +797,7 @@ class ProgrammaticDropdownOverlayState<T>
   void dispose() {
     searchController.dispose();
     animationController.dispose();
+    isOpen = false;
     super.dispose();
   }
 

@@ -605,7 +605,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
   static final show = AdaptiveSelectorShow._();
 
   static bool get isShow{
-    return AnchoredPanelState.isOpen;
+    return AnchoredPanelState.isOpen || ProgrammaticDropdownOverlayState.isOpen;
   }
 
   ///   dropdownHeaderWidget: Text('Select an option'),
