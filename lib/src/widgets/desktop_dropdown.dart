@@ -26,6 +26,7 @@ class DesktopDropdown<T> extends StatefulWidget {
   final ValueChanged<List<T>>? onSelectionChanged;
   final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
   final bool isMultiSelect;
+  final EdgeInsets? scrollPadding;
 
 
   /// Whether the dropdown should automatically close when an item is selected.
@@ -55,6 +56,7 @@ class DesktopDropdown<T> extends StatefulWidget {
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
     this.autoCloseWhenSelect = true,
+    this.scrollPadding
   });
 
   @override
@@ -438,6 +440,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         onTap: (){
           widget.isLoading ? null : _toggleDropdown();
         },
+        scrollPadding: widget.scrollPadding ?? const EdgeInsets.all(20.0),
       ),
     );
   }

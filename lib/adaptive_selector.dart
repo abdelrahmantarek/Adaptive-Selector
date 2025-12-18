@@ -277,6 +277,8 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// Useful to anchor horizontal effects (e.g., compute dxFraction relative to the trigger X).
   final ValueChanged<double>? onContextualPushPivotXChanged;
 
+
+
   /// Optional [LayerLink] for anchored panel mode.
   ///
   /// When provided, the selector will display as an anchored panel positioned
@@ -394,6 +396,9 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// Can be used for footers, action buttons, or any custom content.
   final Widget? footerWidget;
 
+
+  final EdgeInsets? scrollPadding;
+
   const AdaptiveSelector({
     super.key,
     required this.options,
@@ -428,6 +433,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.headerWidget,
     this.footerWidget,
     this.buttonBuilder,
+    this.scrollPadding,
   }) : selectedValues = const [],
        onSelectionChanged = null,
        selectedValuesBuilder = null,
@@ -469,6 +475,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.headerWidget,
     this.footerWidget,
     this.buttonBuilder,
+    this.scrollPadding,
   }) : mode = AdaptiveSelectorMode.automatic,
        selectedValues = const [],
        onSelectionChanged = null,
@@ -516,6 +523,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.headerWidget,
     this.footerWidget,
     this.buttonBuilder,
+    this.scrollPadding,
   }) : mode = isLeft
            ? AdaptiveSelectorMode.leftSheet
            : AdaptiveSelectorMode.rightSheet,
@@ -568,6 +576,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.onSelectionChanged,
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
+    this.scrollPadding,
   }) : mode = AdaptiveSelectorMode.bottomSheet,
        breakpoint = 600,
        dropdownHeaderWidget = null,
@@ -632,6 +641,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.onSelectionChanged,
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
+    this.scrollPadding,
   }) : mode = AdaptiveSelectorMode.dropdown,
        breakpoint = 600,
        sideSheetSize = SideSheetSize.medium,
@@ -790,6 +800,7 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       selectedValues: widget.selectedValues,
       onSelectionChanged: widget.onSelectionChanged,
       selectedValuesBuilder: widget.selectedValuesBuilder,
+      scrollPadding: widget.scrollPadding,
     );
   }
 
