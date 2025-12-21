@@ -9,10 +9,10 @@ import 'loading_widget.dart';
 /// widget specified by [anchorLink]. Automatically adjusts position based on
 /// available screen space.
 class AnchoredPanel<T> extends StatefulWidget {
-  final List<T> options;
+  final List<T>? options;
   final T? selectedValue;
-  final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final void Function(T value)? onChanged;
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
@@ -65,7 +65,7 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
   @override
   void initState() {
     super.initState();
-    _filteredOptions = widget.options;
+    _filteredOptions = widget.options ?? [];
 
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 200),
@@ -86,7 +86,7 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
     super.didUpdateWidget(oldWidget);
     if (oldWidget.options != widget.options) {
       setState(() {
-        _filteredOptions = widget.options;
+        _filteredOptions = widget.options ?? [];
       });
     }
     // If the anchor link changed, close the overlay to prevent LayerLink errors
@@ -430,13 +430,13 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
       // Synchronous search
       setState(() {
         if (query.isEmpty) {
-          _filteredOptions = widget.options;
+          _filteredOptions = widget.options ?? [];
         } else {
           final lowerQuery = query.toLowerCase();
-          _filteredOptions = widget.options.where((item) {
+          _filteredOptions = widget.options!.where((item) {
             // Convert item to string using itemBuilder
             final itemText = widget
-                .itemBuilder(context, item, false)
+                .itemBuilder!(context, item, false)
                 .toString()
                 .toLowerCase();
             return itemText.contains(lowerQuery);
@@ -479,11 +479,11 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
   Widget _buildPanelItem(T item, bool isSelected) {
     return InkWell(
       onTap: () {
-        widget.onChanged(item);
+        widget.onChanged!(item);
         _removeOverlay();
         _searchController.clear();
         setState(() {
-          _filteredOptions = widget.options;
+          _filteredOptions = widget.options ?? [];
         });
       },
       child: Container(
@@ -498,7 +498,7 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
                 ? (widget.style.selectedTextColor ?? Colors.blue)
                 : (widget.style.textColor ?? Colors.black87),
           ),
-          child: widget.itemBuilder(context, item, isSelected),
+          child: widget.itemBuilder!(context, item, isSelected),
         ),
       ),
     );
@@ -541,7 +541,7 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
                             color: widget.style.textColor ?? Colors.black87,
                             fontSize: 14,
                           ),
-                      child: widget.itemBuilder(
+                      child: widget.itemBuilder!(
                         context,
                         widget.selectedValue as T,
                         true,

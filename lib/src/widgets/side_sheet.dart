@@ -13,10 +13,10 @@ typedef SideSheetCustomBuilder<T> =
 
 /// Side sheet implementation that slides in from left or right.
 class SideSheet<T> extends StatefulWidget {
-  final List<T> options;
+  final List<T>? options;
   final T? selectedValue;
-  final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final void Function(T value)? onChanged;
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
@@ -413,11 +413,11 @@ class _SideSheetState<T> extends State<SideSheet<T>> {
                             fontSize: 16,
                             color: widget.style.textColor ?? Colors.black87,
                           ),
-                      child: widget.itemBuilder(
+                      child: widget.itemBuilder != null ? widget.itemBuilder!(
                         context,
                         widget.selectedValue as T,
                         true,
-                      ),
+                      ) : SizedBox(),
                     )
                   : Text(
                       widget.hint ?? 'Select an option',
@@ -437,10 +437,10 @@ class _SideSheetState<T> extends State<SideSheet<T>> {
 
 /// Side sheet content widget with state management
 class _SideSheetContent<T> extends StatefulWidget {
-  final List<T> options;
+  final List<T>? options;
   final T? selectedValue;
-  final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final void Function(T value)? onChanged;
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
@@ -488,7 +488,7 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
   @override
   void initState() {
     super.initState();
-    _filteredOptions = widget.options;
+    _filteredOptions = widget.options ?? [];
   }
 
   @override
@@ -522,7 +522,7 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
     } else {
       // Sync search
       setState(() {
-        _filteredOptions = SearchHelper.searchSync(widget.options, query);
+        _filteredOptions = SearchHelper.searchSync(widget.options ?? [], query);
       });
     }
   }
@@ -591,7 +591,7 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
     final Widget bodyContent;
     if (widget.customBuilder != null) {
       final custom = widget.customBuilder!(context, (value) {
-        widget.onChanged(value);
+        widget.onChanged!(value);
         if (widget.autoCloseOnSelect) Navigator.of(context).pop();
       }, () => Navigator.of(context).pop());
       bodyContent = custom;
@@ -616,7 +616,7 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
 
                       return InkWell(
                         onTap: () {
-                          widget.onChanged(item);
+                          widget.onChanged!(item);
                           if (widget.autoCloseOnSelect) {
                             Navigator.of(context).pop();
                           }
@@ -638,7 +638,7 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
                                         Colors.blue)
                                   : (widget.style.textColor ?? Colors.black87),
                             ),
-                            child: widget.itemBuilder(
+                            child: widget.itemBuilder!(
                               context,
                               item,
                               isSelected,
@@ -685,10 +685,10 @@ class _SideSheetContentState<T> extends State<_SideSheetContent<T>> {
 
 /// Drawer content widget for push behavior
 class _SideSheetDrawerContent<T> extends StatefulWidget {
-  final List<T> options;
+  final List<T>? options;
   final T? selectedValue;
-  final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final void Function(T value)? onChanged;
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
@@ -730,7 +730,7 @@ class _SideSheetDrawerContentState<T>
   @override
   void initState() {
     super.initState();
-    _filteredOptions = widget.options;
+    _filteredOptions = widget.options ?? [];
   }
 
   @override
@@ -764,7 +764,7 @@ class _SideSheetDrawerContentState<T>
     } else {
       // Sync search
       setState(() {
-        _filteredOptions = SearchHelper.searchSync(widget.options, query);
+        _filteredOptions = SearchHelper.searchSync(widget.options ?? [], query);
       });
     }
   }
@@ -824,7 +824,7 @@ class _SideSheetDrawerContentState<T>
               onChanged: (value) {
                 if (value.isEmpty) {
                   setState(() {
-                    _filteredOptions = widget.options;
+                    _filteredOptions = widget.options ?? [];
                   });
                 } else {
                   _filterOptions(value);
@@ -845,7 +845,7 @@ class _SideSheetDrawerContentState<T>
 
                     return InkWell(
                       onTap: () {
-                        widget.onChanged(item);
+                        widget.onChanged!(item);
                         Navigator.of(context).pop();
                       },
                       child: Container(
@@ -865,7 +865,7 @@ class _SideSheetDrawerContentState<T>
                                       Colors.blue)
                                 : (widget.style.textColor ?? Colors.black87),
                           ),
-                          child: widget.itemBuilder(context, item, isSelected),
+                          child: widget.itemBuilder!(context, item, isSelected),
                         ),
                       ),
                     );

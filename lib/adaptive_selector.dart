@@ -55,7 +55,7 @@ import 'src/widgets/anchored_panel.dart';
 class AdaptiveSelector<T> extends StatefulWidget {
   /// The list of selectable items.
   /// For async search, this can be an empty list initially.
-  final List<T> options;
+  final List<T>? options;
 
   /// The currently selected value.
   final T? selectedValue;
@@ -73,12 +73,14 @@ class AdaptiveSelector<T> extends StatefulWidget {
   final bool isMultiSelect;
 
   /// Callback function that triggers when user selects an option.
-  final void Function(T value) onChanged;
+  final void Function(T value)? onChanged;
 
   /// Function to build the display representation of each option.
   /// The third parameter (bool isSelected) indicates whether the item is currently selected.
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
+
+  final Widget Function(BuildContext context, Function() close)? customWidget;
 
   /// Whether to enable search functionality. Default is false.
   final bool enableSearch;
@@ -434,6 +436,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.footerWidget,
     this.buttonBuilder,
     this.scrollPadding,
+    this.customWidget,
   }) : selectedValues = const [],
        onSelectionChanged = null,
        selectedValuesBuilder = null,
@@ -476,6 +479,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.footerWidget,
     this.buttonBuilder,
     this.scrollPadding,
+    this.customWidget,
   }) : mode = AdaptiveSelectorMode.automatic,
        selectedValues = const [],
        onSelectionChanged = null,
@@ -524,6 +528,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.footerWidget,
     this.buttonBuilder,
     this.scrollPadding,
+    this.customWidget,
   }) : mode = isLeft
            ? AdaptiveSelectorMode.leftSheet
            : AdaptiveSelectorMode.rightSheet,
@@ -577,6 +582,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
     this.scrollPadding,
+    this.customWidget,
   }) : mode = AdaptiveSelectorMode.bottomSheet,
        breakpoint = 600,
        dropdownHeaderWidget = null,
@@ -622,10 +628,10 @@ class AdaptiveSelector<T> extends StatefulWidget {
   /// ```
   const AdaptiveSelector.dropdown({
     super.key,
-    required this.options,
-    required this.selectedValue,
-    required this.onChanged,
-    required this.itemBuilder,
+    this.options,
+    this.selectedValue,
+    this.onChanged,
+    this.itemBuilder,
     this.enableSearch = false,
     this.style,
     this.hint,
@@ -642,6 +648,7 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
     this.scrollPadding,
+    this.customWidget,
   }) : mode = AdaptiveSelectorMode.dropdown,
        breakpoint = 600,
        sideSheetSize = SideSheetSize.medium,
@@ -801,6 +808,7 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       onSelectionChanged: widget.onSelectionChanged,
       selectedValuesBuilder: widget.selectedValuesBuilder,
       scrollPadding: widget.scrollPadding,
+      customWidget: widget.customWidget,
     );
   }
 
@@ -823,6 +831,7 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       onSelectionChanged: widget.onSelectionChanged,
       selectedValuesBuilder: widget.selectedValuesBuilder,
       isMultiSelect: widget.isMultiSelect,
+      customWidget: widget.customWidget,
     );
   }
 

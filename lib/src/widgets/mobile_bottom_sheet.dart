@@ -5,10 +5,10 @@ import 'loading_widget.dart';
 
 /// Mobile bottom sheet implementation for small screens.
 class MobileBottomSheet<T> extends StatefulWidget {
-  final List<T> options;
+  final List<T>? options;
   final T? selectedValue;
-  final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final void Function(T value)? onChanged;
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
@@ -24,6 +24,7 @@ class MobileBottomSheet<T> extends StatefulWidget {
   final ValueChanged<List<T>>? onSelectionChanged;
   final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
   final bool isMultiSelect;
+  final Widget Function(BuildContext context, Function() close)? customWidget;
 
   const MobileBottomSheet({
     super.key,
@@ -45,6 +46,7 @@ class MobileBottomSheet<T> extends StatefulWidget {
     this.onSelectionChanged,
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
+    this.customWidget,
   });
 
   /// Programmatic API to open the bottom sheet overlay.
@@ -255,11 +257,11 @@ class _MobileBottomSheetState<T> extends State<MobileBottomSheet<T>> {
                             color: widget.style.textColor ?? Colors.black87,
                             fontSize: 16,
                           ),
-                      child: widget.itemBuilder(
+                      child: widget.itemBuilder != null ? widget.itemBuilder!(
                         context,
                         widget.selectedValue as T,
                         true,
-                      ),
+                      ) : SizedBox(),
                     )
                   : Text(
                       widget.hint ?? 'Select an option',
@@ -279,10 +281,10 @@ class _MobileBottomSheetState<T> extends State<MobileBottomSheet<T>> {
 
 /// Bottom sheet content widget with state management
 class _BottomSheetContent<T> extends StatefulWidget {
-  final List<T> options;
+  final List<T>? options;
   final T? selectedValue;
-  final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final void Function(T value)? onChanged;
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
@@ -334,7 +336,7 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
   @override
   void initState() {
     super.initState();
-    _filteredOptions = widget.options;
+    _filteredOptions = widget.options ?? [];
     if (widget.isMultiSelect) {
       _localSelectedValues = List<T>.from(widget.selectedValues);
     }
@@ -371,7 +373,7 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
     } else {
       // Sync search
       setState(() {
-        _filteredOptions = SearchHelper.searchSync(widget.options, query);
+        _filteredOptions = SearchHelper.searchSync(widget.options ?? [], query);
       });
     }
   }
@@ -479,7 +481,7 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
             Navigator.pop(context);
           }
         } else {
-          widget.onChanged(item);
+          widget.onChanged!(item);
           Navigator.pop(context);
         }
       },
@@ -513,7 +515,7 @@ class _BottomSheetContentState<T> extends State<_BottomSheetContent<T>> {
                           : (widget.style.textColor ?? Colors.black87),
                       fontSize: 16,
                     ),
-                child: widget.itemBuilder(context, item, isSelected),
+                child: widget.itemBuilder != null ? widget.itemBuilder!(context, item, isSelected) : SizedBox(),
               ),
             ),
             if (widget.isMultiSelect)

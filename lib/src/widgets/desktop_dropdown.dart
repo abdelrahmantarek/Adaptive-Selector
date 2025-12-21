@@ -7,10 +7,10 @@ import 'loading_widget.dart';
 
 /// Desktop dropdown implementation for large screens with animations.
 class DesktopDropdown<T> extends StatefulWidget {
-  final List<T> options;
+  final List<T>? options;
   final T? selectedValue;
-  final void Function(T value) onChanged;
-  final Widget Function(BuildContext context, T item, bool isSelected)
+  final void Function(T value)? onChanged;
+  final Widget Function(BuildContext context, T item, bool isSelected)?
   itemBuilder;
   final bool enableSearch;
   final AdaptiveSelectorStyle style;
@@ -27,6 +27,9 @@ class DesktopDropdown<T> extends StatefulWidget {
   final Widget Function(BuildContext, List<T>)? selectedValuesBuilder;
   final bool isMultiSelect;
   final EdgeInsets? scrollPadding;
+  final Widget Function(BuildContext context, Function() close)? customWidget;
+
+
 
 
   /// Whether the dropdown should automatically close when an item is selected.
@@ -56,7 +59,8 @@ class DesktopDropdown<T> extends StatefulWidget {
     this.selectedValuesBuilder,
     this.isMultiSelect = false,
     this.autoCloseWhenSelect = true,
-    this.scrollPadding
+    this.scrollPadding,
+    this.customWidget,
   });
 
   @override
@@ -81,7 +85,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   @override
   void initState() {
     super.initState();
-    _filteredOptions = widget.options;
+    _filteredOptions = widget.options ?? [];
     if (widget.isMultiSelect) {
       _localSelectedValues = List<T>.from(widget.selectedValues);
     }
@@ -113,7 +117,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
     super.didUpdateWidget(oldWidget);
     if (widget.options != oldWidget.options) {
       setState(() {
-        _filteredOptions = widget.options;
+        _filteredOptions = widget.options ?? [];
       });
     }
     if (widget.isMultiSelect &&
@@ -271,7 +275,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
       }
     } else {
       setState(() {
-        _filteredOptions = SearchHelper.searchSync(widget.options, query);
+        _filteredOptions = SearchHelper.searchSync(widget.options ?? [], query);
       });
       rebuildOverlay();
     }
@@ -325,13 +329,13 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
           _overlayEntry?.markNeedsBuild();
           widget.onSelectionChanged?.call(List<T>.from(_localSelectedValues));
         } else {
-          widget.onChanged(item);
+          widget.onChanged!(item);
           if (widget.autoCloseWhenSelect) {
             _removeOverlay();
           }
           _searchController.clear();
           setState(() {
-            _filteredOptions = widget.options;
+            _filteredOptions = widget.options ?? [];
           });
         }
       },
@@ -359,7 +363,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                           : (widget.style.textColor ?? Colors.black87),
                       fontSize: 16,
                     ),
-                child: widget.itemBuilder(context, item, isSelected),
+                child: widget.itemBuilder != null ? widget.itemBuilder!(context, item, isSelected) : SizedBox(),
               ),
             ),
             if (widget.isMultiSelect) ...[
@@ -504,11 +508,11 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                       color: widget.style.textColor ?? Colors.black87,
                       fontSize: 16,
                     ),
-                child: widget.itemBuilder(
+                child: widget.itemBuilder != null ? widget.itemBuilder!(
                   context,
                   widget.selectedValue as T,
                   true,
-                ),
+                ) : SizedBox(),
               )
                   : Text(
                 widget.hint ?? 'Select an option',
