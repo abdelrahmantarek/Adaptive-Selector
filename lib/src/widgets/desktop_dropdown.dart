@@ -224,7 +224,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                               color: widget.style.borderColor ?? Colors.grey,
                             ),
                           ),
-                          child: SearchLoadingOverlay(
+                          child: widget.customWidget != null ? widget.customWidget!(context,closeFunction) : SearchLoadingOverlay(
                             isLoading: _isSearching,
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
@@ -383,7 +383,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
 
 
   }
+  closeFunction() {
 
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -530,6 +532,8 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
       ),
     );
   }
+
+
 
 }
 
