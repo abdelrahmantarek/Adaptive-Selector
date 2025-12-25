@@ -383,6 +383,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
 
 
   }
+
   closeFunction() {
 
   }
@@ -685,6 +686,7 @@ class _ProgrammaticDropdownOverlay<T> extends StatefulWidget {
 class ProgrammaticDropdownOverlayState<T>
     extends State<_ProgrammaticDropdownOverlay<T>>
     with SingleTickerProviderStateMixin {
+  static ProgrammaticDropdownOverlayState<dynamic>? _activeInstance;
   late List<T> filteredOptions;
   final TextEditingController searchController = TextEditingController();
   bool isSearching = false;
@@ -777,6 +779,7 @@ class ProgrammaticDropdownOverlayState<T>
   @override
   void initState() {
     super.initState();
+    _activeInstance = this;
     isOpen = true;
     filteredOptions = widget.options;
     animationController = AnimationController(
@@ -809,7 +812,25 @@ class ProgrammaticDropdownOverlayState<T>
     searchController.dispose();
     animationController.dispose();
     isOpen = false;
+    if (identical(_activeInstance, this)) {
+      _activeInstance = null;
+    }
     super.dispose();
+  }
+
+  static void close() {
+    final instance = _activeInstance;
+    if (instance == null) return;
+    if (!instance.mounted) {
+      isOpen = false;
+      _activeInstance = null;
+      return;
+    }
+    instance.widget.onClose();
+  }
+
+  static void hide() {
+    close();
   }
 
   Future<void> filterOptions(String query) async {
@@ -1195,4 +1216,6 @@ class ProgrammaticDropdownOverlayState<T>
       ),
     );
   }
+
+
 }

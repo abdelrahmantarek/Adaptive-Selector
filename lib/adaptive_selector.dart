@@ -623,6 +623,12 @@ class AdaptiveSelector<T> extends StatefulWidget {
     return AnchoredPanelState.isOpen || ProgrammaticDropdownOverlayState.isOpen;
   }
 
+  static hideDropDown(){
+    if(isShow){
+      ProgrammaticDropdownOverlayState.close();
+    }
+  }
+
   ///   dropdownHeaderWidget: Text('Select an option'),
   /// )
   /// ```
