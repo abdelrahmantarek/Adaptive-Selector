@@ -185,10 +185,20 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
     var size = renderBox.size;
     final double panelWidth = widget.dropdownWidth ?? size.width;
     final double panelMaxHeight = widget.dropdownHeight ?? 300;
+    final Offset anchorOffset = renderBox.localToGlobal(Offset.zero);
+    final Size screenSize = MediaQuery.of(context).size;
+    const double edgePadding = 8.0;
 
     // Get text direction for RTL support
     final textDirection = Directionality.of(context);
     final bool isRTL = textDirection == TextDirection.rtl;
+    final double desiredLeft =
+        isRTL ? (anchorOffset.dx + size.width - panelWidth) : anchorOffset.dx;
+    final double maxLeft = screenSize.width - panelWidth - edgePadding;
+    final double clampedLeft = maxLeft >= edgePadding
+        ? desiredLeft.clamp(edgePadding, maxLeft)
+        : edgePadding;
+    final double dxCorrection = clampedLeft - desiredLeft;
 
     return OverlayEntry(
       builder: (context) => GestureDetector(
@@ -205,7 +215,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                     ? Alignment.bottomRight
                     : Alignment.bottomLeft,
                 followerAnchor: isRTL ? Alignment.topRight : Alignment.topLeft,
-                offset: Offset(0, 5),
+                offset: Offset(dxCorrection, 5),
                 child: GestureDetector(
                   onTap: () {
                     // Prevent closing when tapping inside the dropdown
