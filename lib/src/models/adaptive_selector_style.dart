@@ -23,6 +23,9 @@ class AdaptiveSelectorStyle {
   /// Icon for the dropdown arrow.
   final Icon? dropdownIcon;
 
+  /// Whether to show the dropdown arrow icon.
+  final bool showDropdownIcon;
+
   /// Icon for the search field.
   final Icon? searchIcon;
 
@@ -71,6 +74,7 @@ class AdaptiveSelectorStyle {
     this.textStyle,
     this.selectedTextStyle,
     this.dropdownIcon,
+    this.showDropdownIcon = true,
     this.searchIcon,
     this.showSearchIcon = true,
     this.closeIcon,
@@ -93,6 +97,7 @@ class AdaptiveSelectorStyle {
     TextStyle? textStyle,
     TextStyle? selectedTextStyle,
     Icon? dropdownIcon,
+    bool? showDropdownIcon,
     Icon? searchIcon,
     bool? showSearchIcon,
     Icon? closeIcon,
@@ -113,6 +118,7 @@ class AdaptiveSelectorStyle {
       textStyle: textStyle ?? this.textStyle,
       selectedTextStyle: selectedTextStyle ?? this.selectedTextStyle,
       dropdownIcon: dropdownIcon ?? this.dropdownIcon,
+      showDropdownIcon: showDropdownIcon ?? this.showDropdownIcon,
       searchIcon: searchIcon ?? this.searchIcon,
       showSearchIcon: showSearchIcon ?? this.showSearchIcon,
       closeIcon: closeIcon ?? this.closeIcon,

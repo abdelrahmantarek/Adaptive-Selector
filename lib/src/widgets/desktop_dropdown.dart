@@ -549,8 +549,9 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
               ),
             ),
 
-            widget.style.dropdownIcon ??
-                Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+            if (widget.style.showDropdownIcon)
+              (widget.style.dropdownIcon ??
+                  Icon(Icons.arrow_drop_down, color: Colors.grey.shade600)),
           ],
         ),
       ),
