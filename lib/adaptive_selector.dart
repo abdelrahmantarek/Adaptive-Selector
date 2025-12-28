@@ -400,6 +400,15 @@ class AdaptiveSelector<T> extends StatefulWidget {
 
 
   final EdgeInsets? scrollPadding;
+  /// Optional width for the desktop dropdown panel.
+  ///
+  /// When null, the dropdown width follows the trigger widget width.
+  final double? dropdownWidth;
+
+  /// Optional max height for the desktop dropdown panel.
+  ///
+  /// When null, defaults to 300.
+  final double? dropdownHeight;
 
   const AdaptiveSelector({
     super.key,
@@ -437,6 +446,8 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.buttonBuilder,
     this.scrollPadding,
     this.customWidget,
+    this.dropdownWidth,
+    this.dropdownHeight,
   }) : selectedValues = const [],
        onSelectionChanged = null,
        selectedValuesBuilder = null,
@@ -480,6 +491,8 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.buttonBuilder,
     this.scrollPadding,
     this.customWidget,
+    this.dropdownWidth,
+    this.dropdownHeight,
   }) : mode = AdaptiveSelectorMode.automatic,
        selectedValues = const [],
        onSelectionChanged = null,
@@ -539,6 +552,8 @@ class AdaptiveSelector<T> extends StatefulWidget {
        anchorPosition = AnchorPosition.auto,
        anchorOffset = const Offset(8, 0),
        anchorPanelWidth = 300,
+       dropdownWidth = null,
+       dropdownHeight = null,
        autoCloseWhenSelect = true,
        selectedValues = const [],
        onSelectionChanged = null,
@@ -600,6 +615,8 @@ class AdaptiveSelector<T> extends StatefulWidget {
        anchorPosition = AnchorPosition.auto,
        anchorOffset = const Offset(8, 0),
        anchorPanelWidth = 300,
+       dropdownWidth = null,
+       dropdownHeight = null,
        autoCloseWhenSelect = true;
 
   /// Creates a dropdown selector.
@@ -655,6 +672,8 @@ class AdaptiveSelector<T> extends StatefulWidget {
     this.isMultiSelect = false,
     this.scrollPadding,
     this.customWidget,
+    this.dropdownWidth,
+    this.dropdownHeight,
   }) : mode = AdaptiveSelectorMode.dropdown,
        breakpoint = 600,
        sideSheetSize = SideSheetSize.medium,
@@ -815,6 +834,8 @@ class _AdaptiveSelectorState<T> extends State<AdaptiveSelector<T>> {
       selectedValuesBuilder: widget.selectedValuesBuilder,
       scrollPadding: widget.scrollPadding,
       customWidget: widget.customWidget,
+      dropdownWidth: widget.dropdownWidth,
+      dropdownHeight: widget.dropdownHeight,
     );
   }
 

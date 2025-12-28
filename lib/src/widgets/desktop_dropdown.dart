@@ -28,6 +28,8 @@ class DesktopDropdown<T> extends StatefulWidget {
   final bool isMultiSelect;
   final EdgeInsets? scrollPadding;
   final Widget Function(BuildContext context, Function() close)? customWidget;
+  final double? dropdownWidth;
+  final double? dropdownHeight;
 
 
 
@@ -61,6 +63,8 @@ class DesktopDropdown<T> extends StatefulWidget {
     this.autoCloseWhenSelect = true,
     this.scrollPadding,
     this.customWidget,
+    this.dropdownWidth,
+    this.dropdownHeight,
   });
 
   @override
@@ -179,6 +183,8 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   OverlayEntry _createOverlayEntry() {
     RenderBox renderBox = context.findRenderObject() as RenderBox;
     var size = renderBox.size;
+    final double panelWidth = widget.dropdownWidth ?? size.width;
+    final double panelMaxHeight = widget.dropdownHeight ?? 300;
 
     // Get text direction for RTL support
     final textDirection = Directionality.of(context);
@@ -191,7 +197,7 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
         child: Stack(
           children: [
             Positioned(
-              width: size.width,
+              width: panelWidth,
               child: CompositedTransformFollower(
                 link: _layerLink,
                 showWhenUnlinked: false,
@@ -214,7 +220,8 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
                             widget.style.borderRadius ??
                             BorderRadius.circular(8),
                         child: Container(
-                          constraints: const BoxConstraints(maxHeight: 300),
+                          constraints:
+                              BoxConstraints(maxHeight: panelMaxHeight),
                           decoration: BoxDecoration(
                             color: widget.style.backgroundColor ?? Colors.white,
                             borderRadius:
