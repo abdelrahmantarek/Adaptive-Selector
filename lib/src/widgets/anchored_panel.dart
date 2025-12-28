@@ -383,12 +383,15 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
   }
 
   InputDecoration _buildSearchDecoration() {
+    final bool showIcon = widget.style.showSearchIcon;
     final base =
         widget.style.searchFieldDecoration ??
         widget.style.searchDecoration ??
         InputDecoration(
           hintText: 'Search...',
-          prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+          prefixIcon: showIcon
+              ? (widget.style.searchIcon ?? const Icon(Icons.search))
+              : null,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 12,
@@ -398,9 +401,10 @@ class AnchoredPanelState<T> extends State<AnchoredPanel<T>>
 
     return base.copyWith(
       hintText: base.hintText ?? 'Search...',
-      prefixIcon:
-          base.prefixIcon ??
-          (widget.style.searchIcon ?? const Icon(Icons.search)),
+      prefixIcon: showIcon
+          ? (base.prefixIcon ??
+              (widget.style.searchIcon ?? const Icon(Icons.search)))
+          : null,
     );
   }
 

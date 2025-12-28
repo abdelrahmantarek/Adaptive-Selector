@@ -430,17 +430,23 @@ class _DesktopDropdownState<T> extends State<DesktopDropdown<T>>
   }
 
   Widget buildSearchFieldButton() {
+    final bool showIcon = widget.style.showSearchIcon;
     final base =
         widget.style.searchFieldDecoration ??
             widget.style.searchDecoration ??
             InputDecoration(
-              prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+              prefixIcon: showIcon
+                  ? (widget.style.searchIcon ?? const Icon(Icons.search))
+                  : null,
               border: InputBorder.none,
             );
 
     final decoration = base.copyWith(
       fillColor: widget.style.backgroundColor ?? Colors.white,
-      prefixIcon: base.prefixIcon ?? (widget.style.searchIcon ?? const Icon(Icons.search)),
+      prefixIcon: showIcon
+          ? (base.prefixIcon ??
+              (widget.style.searchIcon ?? const Icon(Icons.search)))
+          : null,
       // filled: true,
       border: InputBorder.none,
       hint: widget.selectedValuesBuilder == null ? Text(base.hintText ?? 'Search...') : widget.selectedValuesBuilder!(
@@ -872,20 +878,24 @@ class ProgrammaticDropdownOverlayState<T>
   }
 
   Widget buildSearchField() {
+    final bool showIcon = widget.style.showSearchIcon;
     final base =
         widget.style.searchFieldDecoration ??
         widget.style.searchDecoration ??
         InputDecoration(
           hintText: widget.hint ?? 'Search...',
-          prefixIcon: widget.style.searchIcon ?? const Icon(Icons.search),
+          prefixIcon: showIcon
+              ? (widget.style.searchIcon ?? const Icon(Icons.search))
+              : null,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         );
 
     final decoration = base.copyWith(
       hintText: base.hintText ?? (widget.hint ?? 'Search...'),
-      prefixIcon:
-          base.prefixIcon ??
-          (widget.style.searchIcon ?? const Icon(Icons.search)),
+      prefixIcon: showIcon
+          ? (base.prefixIcon ??
+              (widget.style.searchIcon ?? const Icon(Icons.search)))
+          : null,
     );
 
     return Padding(

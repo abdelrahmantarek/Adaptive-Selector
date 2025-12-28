@@ -26,6 +26,9 @@ class AdaptiveSelectorStyle {
   /// Icon for the search field.
   final Icon? searchIcon;
 
+  /// Whether to show the search icon in the search field.
+  final bool showSearchIcon;
+
   /// Icon for the close button.
   final Icon? closeIcon;
 
@@ -69,6 +72,7 @@ class AdaptiveSelectorStyle {
     this.selectedTextStyle,
     this.dropdownIcon,
     this.searchIcon,
+    this.showSearchIcon = true,
     this.closeIcon,
     this.borderRadius,
     this.padding,
@@ -90,6 +94,7 @@ class AdaptiveSelectorStyle {
     TextStyle? selectedTextStyle,
     Icon? dropdownIcon,
     Icon? searchIcon,
+    bool? showSearchIcon,
     Icon? closeIcon,
     BorderRadius? borderRadius,
     EdgeInsets? padding,
@@ -109,6 +114,7 @@ class AdaptiveSelectorStyle {
       selectedTextStyle: selectedTextStyle ?? this.selectedTextStyle,
       dropdownIcon: dropdownIcon ?? this.dropdownIcon,
       searchIcon: searchIcon ?? this.searchIcon,
+      showSearchIcon: showSearchIcon ?? this.showSearchIcon,
       closeIcon: closeIcon ?? this.closeIcon,
       borderRadius: borderRadius ?? this.borderRadius,
       padding: padding ?? this.padding,
